@@ -1,38 +1,88 @@
 import { Edit, Trash } from 'iconsax-react';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import ReactPaginate from 'react-paginate';
 import { Link } from 'react-router-dom';
 import Swal from 'sweetalert2';
+import { deleteBookingbyId, getAllBookingsApi } from '../../../../apis/api';
 import EditBookingModal from './EditBookingModal';
 
-const VendorBookingTable = () => {
-    const [isLoading, setIsLoading] = useState(false);
+const VendorBookingTable = ({ searchQuery, selectedDate, selectedStartDate, isUpdated, setIsUpdated }) => {
+    const [isLoading, setIsLoading] = useState(true);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [bookings, setBookings] = useState([]);
+    const [totalBookingCount, setTotalBookingCount] = useState(0);
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 20;
 
-    function handleDelete() {
+    const fetchBookings = async () => {
+        setIsLoading(true);
+        getAllBookingsApi(currentPage, itemsPerPage, searchQuery, selectedDate, selectedStartDate).then((response) => {
+            if (response.data.success === true) {
+                setBookings(response.data.bookingsData);
+                setTotalBookingCount(response.data.totalCount);
+                setIsLoading(false);
+            }
+        }).catch((error) => {
+            console.log(error);
+            setIsLoading(false);
+        })
+    }
+
+    useEffect(() => {
+        fetchBookings();
+    }, [isUpdated, currentPage, itemsPerPage, searchQuery, selectedDate, selectedStartDate]);
+
+    function handleDelete(id, name) {
         Swal.fire({
-            title: 'Are you sure you want to delete this booking?',
+            title: `Are you sure you want to delete this booking of ${name}?`,
             text: "You won't be able to revert this!",
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#3085d6',
             cancelButtonColor: '#d33',
             confirmButtonText: 'Yes, delete it!'
-        }).then((result) => {
+        }).then(async (result) => {
             if (result.isConfirmed) {
-                Swal.fire({
-                    title: 'Deleted!',
-                    text: 'Booking has been deleted.',
-                    icon: 'success',
-                    showConfirmButton: false,
-                    timer: 1500
-                })
+                try {
+                    const response = await deleteBookingbyId(id);
+                    if (response.data.success) {
+                        Swal.fire({
+                            title: 'Deleted!',
+                            text: 'Futsal has been deleted.',
+                            icon: 'success',
+                            showConfirmButton: false,
+                            timer: 1500
+                        });
+                        setIsUpdated(true);
+                    } else {
+                        Swal.fire({
+                            title: 'Error!',
+                            text: 'Failed to delete futsal.',
+                            icon: 'error',
+                            showConfirmButton: false,
+                            timer: 1500
+                        });
+                    }
+                } catch (error) {
+                    Swal.fire({
+                        title: 'Error!',
+                        text: 'An error occurred while deleting futsal.',
+                        icon: 'error',
+                        showConfirmButton: false,
+                        timer: 1500
+                    });
+                }
             }
         })
     }
 
     const handleEditModal = () => {
         setIsEditModalOpen(!isEditModalOpen);
+    }
+
+    const handlePageClick = (data) => {
+        const selectedPage = data.selected + 1;
+        setCurrentPage(selectedPage);
     }
 
     return (
@@ -73,72 +123,70 @@ const VendorBookingTable = () => {
                                     </td>
                                 </tr> :
                                 <>
-                                    {/* {subscriber && subscriber.length > 0 ? subscriber.map((subscriber, index) => ( */}
-                                    <tr class="border-b hover:bg-white">
-                                        <td class="px-6 py-4">
-                                            <div className="flex flex-col gap-1">
-                                                <Link className='hover:text-green-600 flex flex-col gap-1'>
-                                                    <p className='text-[15px]'>Abhishek karki</p>
-                                                    <p className='text-sm'>9822797614</p>
-                                                </Link>
-                                                {/* <Link to={`/subscriber-detail/${subscriber._id}`} className='flex text-base hover:text-primary'>{subscriber.fullName}</Link>
-                                                    <p>{subscriber.email}</p> */}
-                                            </div>
-                                        </td>
-                                        <td class="px-6 py-4">
-                                            <div className="flex flex-col gap-1">
-                                                <Link className='hover:text-green-600'>Gokarna Futsal</Link>
-                                                {/* <Link to={`/subscriber-detail/${subscriber._id}`} className='flex text-base hover:text-primary'>{subscriber.fullName}</Link>
-                                                    <p>{subscriber.email}</p> */}
-                                            </div>
-                                        </td>
-                                        <td class="px-6 py-4">
-                                            Gokarna
-                                            {/* {moment(subscriber.createdAt).format('MMM Do, YYYY, h:mm A')} */}
-                                        </td>
-                                        <td class="px-6 py-4 overflow-auto">
-                                            10-11
-                                            {/* {subscriber.broadcasts.length} */}
-                                        </td>
-                                        <td class="px-6 py-4">
-                                            Rs. 1000
-                                            {/* {subscriber.broadcasts.length} */}
-                                        </td>
-                                        <td class="px-6 py-4">
-                                            Paid
-                                            {/* {subscriber.broadcasts.length} */}
-                                        </td>
-                                        <td class="px-6 py-4">
-                                            <div className="flex items-center gap-3">
-                                                <button onClick={handleEditModal} className='text-neutral-700 hover:text-red-500'>
-                                                    <Edit size={20} />
-                                                </button>
-                                                <button onClick={handleDelete} className='text-neutral-700 hover:text-red-500'>
-                                                    <Trash size={22} />
-                                                </button>
-                                            </div>
-                                            {/* {subscriber.inGroup.length} */}
-                                        </td>
-                                    </tr>
-                                    {/* )) :
-                                        <tr className='w-full border-b dark:border-neutral-700'>
-                                            <td colSpan="7" className='border-l border-b py-5'>
-                                                <div className='px-5 text-xl font-medium text-red-500'>No Data Found</div>
-                                            </td>
-                                        </tr>
-                                    } */}
+                                    {
+                                        bookings && bookings.length > 0 ?
+                                            bookings.map((booking, index) => (
+                                                <tr class="border-b hover:bg-white">
+                                                    <td class="px-6 py-4">
+                                                        <div className="flex flex-col gap-1">
+                                                            <Link className='hover:text-green-600 flex flex-col gap-1'>
+                                                                <p className='text-[15px]'>{booking.user.fullName}</p>
+                                                                <p className='text-sm'>{booking.user.number}</p>
+                                                            </Link>
+                                                        </div>
+                                                    </td>
+                                                    <td class="px-6 py-4">
+                                                        <div className="flex flex-col gap-1">
+                                                            <Link className='hover:text-green-600'>{booking.futsal.name}</Link>
+                                                        </div>
+                                                    </td>
+                                                    <td class="px-6 py-4">
+                                                        {booking.futsal.location}
+                                                    </td>
+                                                    <td class="px-6 py-4 overflow-auto">
+                                                        {booking.timeSlot.map((time, index) => (
+                                                            <span key={index}>
+                                                                {time.startTime} - {time.endTime}
+                                                                {index < booking.timeSlot.length - 1 ? ", " : ""}
+                                                            </span>
+                                                        ))}
+                                                    </td>
+                                                    <td class="px-6 py-4">
+                                                        {booking.futsal.price}
+                                                    </td>
+                                                    <td class="px-6 py-4">
+                                                        {
+                                                            booking.isPaid ? 'Yes' : 'No'
+                                                        }
+                                                    </td>
+                                                    <td class="px-6 py-4">
+                                                        <div className="flex items-center gap-3">
+                                                            <button onClick={handleEditModal} className='text-neutral-700 hover:text-red-500'>
+                                                                <Edit size={20} />
+                                                            </button>
+                                                            <button onClick={() => handleDelete(booking._id, booking.user.fullName)} className='text-neutral-700 hover:text-red-500'>
+                                                                <Trash size={22} />
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            )) :
+                                            <tr className='w-full border-b dark:border-neutral-700'>
+                                                <td colSpan="7" className='border-l border-b py-5'>
+                                                    <div className='px-5 text-xl font-medium text-red-500'>No Data Found</div>
+                                                </td>
+                                            </tr>
+                                    }
                                 </>
                         }
                     </tbody>
                 </table>
-                {/* {
-                    subscriber && subscriber.length > 0 ? */}
                 <ReactPaginate
                     className="flex items-center border rounded-lg text-neutral-700 my-2 p-auto w-max"
-                    pageCount={2}
+                    pageCount={Math.ceil(totalBookingCount / itemsPerPage)}
                     pageRangeDisplayed={2}
                     marginPagesDisplayed={2}
-                    // onPageChange={handlePageClick}
+                    onPageChange={handlePageClick}
                     containerClassName={'pagination flex'}
                     previousLabel={<span className="flex items-center justify-center text-neutral-700 px-2 py-1">Previous</span>}
                     nextLabel={<span className="flex items-center justify-center text-neutral-700 px-2 py-1">Next</span>}
@@ -152,9 +200,6 @@ const VendorBookingTable = () => {
                     breakLinkClassName="flex items-center justify-center px-2 py-1"
                     activeLinkClassName="text-primary"
                 />
-                {/* :
-                        null
-                } */}
             </div>
             <EditBookingModal open={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} />
         </>

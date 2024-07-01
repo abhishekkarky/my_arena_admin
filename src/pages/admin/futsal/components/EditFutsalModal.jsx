@@ -2,17 +2,29 @@ import DialogContent from '@mui/joy/DialogContent';
 import Modal from '@mui/joy/Modal';
 import ModalDialog from '@mui/joy/ModalDialog';
 import { Field, Form, Formik } from 'formik';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { Transition } from 'react-transition-group';
 import * as Yup from 'yup';
+import { getFutsalByIdApi, updateFutsalApi } from '../../../../apis/api';
 
-const EditFutsalModal = ({ open, onClose }) => {
+const EditFutsalModal = ({ open, onClose, futsalId, setIsUpdated }) => {
     const localUser = JSON.parse(localStorage.getItem('user'));
     const [futsalImage, setFutsalImage] = useState(null);
+    const [futsal, setFutsal] = useState(null);
+    const [responseFutsalImage, setResponseFutsalImage] = useState(null);
+    const [futsalName, setFutsalName] = useState(null);
+    const [futsalLocation, setFutsalLocation] = useState(null);
+    const [futsalGroundSize, setFutsalGroundSize] = useState(null);
+    const [futsalPrice, setFutsalPrice] = useState(null);
+    const [futsalLat, setFutsalLat] = useState(null);
+    const [futsalLong, setFutsalLong] = useState(null);
+    const [futsalStartTime, setFutsalStartTime] = useState(null);
+    const [futsalEndTime, setFutsalEndTime] = useState(null);
+    const [futsalDayOfWeek, setFutsalDayOfWeek] = useState(null);
     const [previewFutsalImage, setPreviewFutsalImage] = useState(null);
 
-    const addFutsalValidation = Yup.object().shape({
+    const editFutsalValidation = Yup.object().shape({
         name: Yup.string().required('Futsal name is required'),
         location: Yup.string().required('Futsal location is required'),
         groundSize: Yup.string().required('Futsal ground size is required'),
@@ -24,43 +36,64 @@ const EditFutsalModal = ({ open, onClose }) => {
         dayOfWeek: Yup.string().required('Futsal day of week is required'),
     })
 
+    useEffect(() => {
+        if (futsalId) {
+            getFutsalByIdApi(futsalId).then(response => {
+                if (response.data.success) {
+                    setFutsal(response.data.futsal);
+                    setFutsalName(response.data.futsal.name);
+                    setFutsalLocation(response.data.futsal.location);
+                    setFutsalGroundSize(response.data.futsal.groundSize);
+                    setFutsalPrice(response.data.futsal.price);
+                    setFutsalLat(response.data.futsal.lat);
+                    setFutsalLong(response.data.futsal.long);
+                    setFutsalStartTime(response.data.futsal.startTime);
+                    setFutsalEndTime(response.data.futsal.endTime);
+                    setFutsalDayOfWeek(response.data.futsal.dayOfWeek);
+                    setPreviewFutsalImage(response.data.futsal.futsalImageUrl);
+                }
+            }).catch(error => {
+                console.error("Error fetching futsal details:", error);
+            });
+        }
+    }, [futsalId]);
+
+    if (!open) return null;
+
     const handleFutsalImage = (e) => {
         setFutsalImage(e.target.files[0]);
         setPreviewFutsalImage(URL.createObjectURL(e.target.files[0]));
     }
-    const handleSubmit = async (props) => {
+    const handleUpdate = async (props) => {
         console.log(props)
-        if (!futsalImage) {
-            toast.error('Futsal image is required');
-        }
-        // editUserPassword(localUser._id, props).then((res) => {
-        //     if (res.data.success === true) {
-        //         addToast(res.data.message, {
-        //             appearance: "success",
-        //             autoDismiss: "true",
-        //         });
-        //         onClose()
-        //     }
-        //     else {
-        //         addToast(res.data.message, {
-        //             appearance: "error",
-        //             autoDismiss: "true",
-        //         });
-        //     }
-        // }).catch(err => {
-        //     if (err.response && err.response.status === 403) {
-        //         addToast(err.response.data.message, {
-        //             appearance: "error",
-        //             autoDismiss: "true",
-        //         });
-        //     } else {
-        //         addToast('Something went wrong', {
-        //             appearance: "error",
-        //             autoDismiss: "true",
-        //         });
-        //         console.log(err.message);
-        //     }
-        // })
+        const formData = new FormData();
+        formData.append('name', props.name);
+        formData.append('location', props.location);
+        formData.append('groundSize', props.groundSize);
+        formData.append('price', props.price);
+        formData.append('lat', props.lat);
+        formData.append('long', props.long);
+        formData.append('startTime', props.startTime);
+        formData.append('endTime', props.endTime);
+        formData.append('dayOfWeek', props.dayOfWeek);
+        formData.append('futsalImage', futsalImage);
+        updateFutsalApi(futsalId, formData).then((res) => {
+            if (res.data.success) {
+                toast.success(res.data.message);
+                onClose();
+                setFutsalImage(null);
+                setPreviewFutsalImage(null);
+                setIsUpdated(true)
+            } else {
+                toast.error(res.data.message);
+            }
+        }).catch((err) => {
+            if (err.response && err.response.status === 403) {
+                toast.error(err.response.data.message);
+            } else {
+                toast.error('☹ Server is not responding ☹');
+            }
+        })
     }
     return (
         <React.Fragment>
@@ -102,15 +135,16 @@ const EditFutsalModal = ({ open, onClose }) => {
                         >
                             <DialogContent>
                                 <Formik
-                                    initialValues={{ name: '', location: '', groundSize: '', price: '', lat: '', long: '', startTime: '', endTime: '', dayOfWeek: '' }}
-                                    validationSchema={addFutsalValidation}
+                                    enableReinitialize
+                                    initialValues={{ name: futsalName, location: futsalLocation, groundSize: futsalGroundSize, price: futsalPrice, lat: futsalLat, long: futsalLong, startTime: futsalStartTime, endTime: futsalEndTime, dayOfWeek: futsalDayOfWeek }}
+                                    validationSchema={editFutsalValidation}
                                     onSubmit={(values) => {
-                                        handleSubmit(values);
+                                        handleUpdate(values);
                                     }}
                                 >
                                     {(props) => (
                                         <Form className="sm:min-w-[640px] w-full h-auto flex flex-col gap-y-3 mx-auto my-auto text-neutral-700 border rounded-lg p-4">
-                                            <p className='text-2xl mb-3'>Update <span className='text-green-600 mr-2'>Futsal Name</span></p>
+                                            <p className='text-2xl mb-3'>Update <span className='text-green-600 mr-2'>{futsalName}</span></p>
                                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                                 <div className="flex flex-col gap-3">
                                                     <label className='text-md'>Futsal Name</label>

@@ -21,7 +21,7 @@ function App() {
   return (
     <>
       <Router>
-        <Toaster position="top-center" />
+        <Toaster position="top-center" toastOptions={{ duration: 5000 }} />
         <div className="flex flex-col min-h-screen">
           <Navbar />
           <div className="flex-1">

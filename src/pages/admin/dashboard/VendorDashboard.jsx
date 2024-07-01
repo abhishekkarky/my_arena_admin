@@ -6,7 +6,7 @@ import VendorTotalFutsalBarChart from './components/VendorTotalFutsalBarChart'
 import VendorTotalRevenueBarChart from './components/VendorTotalRevenueBarChart'
 
 const VendorDashboard = () => {
-    const [selectedYear, setSelectedYear] = useState(moment().year())
+    const [selectedYear, setSelectedYear] = useState(moment().format('YYYY'));
     return (
         <>
             <main className='flex flex-col gap-8 md:px-10 md:pb-10 pb-0 px-4 pt-5 max-w-[1440px] mx-auto'>

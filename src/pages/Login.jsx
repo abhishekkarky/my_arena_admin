@@ -1,7 +1,9 @@
 import { Field, Form, Formik } from 'formik';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import toast from 'react-hot-toast';
 import { Link } from 'react-router-dom';
 import * as Yup from "yup";
+import { loginUserApi } from '../apis/api';
 
 const Login = () => {
     const [errorMsg, setErrorMsg] = useState('');
@@ -9,17 +11,20 @@ const Login = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
 
-    // useEffect(() => {
-    //     const user = localStorage.getItem('user');
-    //     if (user) {
-    //         const parsedUser = JSON.parse(user);
-    //         if (parsedUser.isAdmin) {
-    //             window.location.replace('/admin/dashboard?tab=Dashboard');
-    //         } else {
-    //             window.location.replace('/dashboard');
-    //         }
-    //     }
-    // }, []);
+    useEffect(() => {
+        const user = localStorage.getItem('user');
+        if (user) {
+            const parsedUser = JSON.parse(user);
+            if (parsedUser.role === 'vendor') {
+                window.location.replace('/vendor/dashboard');
+            } else if (parsedUser.role === 'superadmin') {
+                window.location.replace('/superadmin/dashboard');
+            } else {
+                window.location.replace('/admin/login');
+                return;
+            }
+        }
+    }, []);
 
     const LoginSchema = Yup.object().shape({
         number: Yup.string().required("Number is required").length(10, "Number must be 10 digits"),
@@ -27,41 +32,42 @@ const Login = () => {
     })
 
     const handleLogin = async (props) => {
-        // setIsLoading(true);
-        // const data = {
-        //     email: props.email,
-        //     password: props.password,
-        //     userTimeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
-        // }
-        // loginUserApi(data).then((res) => {
-        //     if (res.data.success) {
-        //         localStorage.setItem('token', res.data.token)
-        //         const jsonDecode = JSON.stringify(res.data.user)
-        //         localStorage.setItem('user', jsonDecode)
-        //         setIsLoading(false);
-        //         setErrorMsg('')
-        //         setSuccessMsg(res.data.message)
-        //         if (res.data.user.isAdmin === true) {
-        //             window.location.replace('/admin/dashboard?tab=Dashboard')
-        //         } else {
-        //             window.location.replace('/dashboard')
-        //         }
-        //     } else {
-        //         setIsLoading(false);
-        //         addToast(res.data.message, {
-        //             appearance: 'error',
-        //             autoDismiss: 'true'
-        //         })
-        //     }
-        // }).catch((err) => {
-        //     if (err.response && err.response.status === 403) {
-        //         setIsLoading(false);
-        //         setErrorMsg(err.response.data.message)
-        //     } else {
-        //         setIsLoading(false);
-        //         setErrorMsg("☹ Server is not responding ☹")
-        //     }
-        // })
+        setIsLoading(true);
+        const data = {
+            number: props.number,
+            password: props.password,
+            userTimeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
+        }
+        loginUserApi(data).then((res) => {
+            if (res.data.success) {
+                setIsLoading(false);
+                setErrorMsg('')
+                if (res.data.user.role === 'customer') {
+                    setErrorMsg('☹ Access Denied ☹')
+                    return;
+                } else if (res.data.user.role === 'vendor') {
+                    setSuccessMsg(res.data.message)
+                    window.location.replace('/vendor/dashboard');
+                } else if (res.data.user.role === 'superadmin') {
+                    setSuccessMsg(res.data.message)
+                    window.location.replace('/superadmin/dashboard');
+                }
+                localStorage.setItem('token', res.data.token)
+                const jsonDecode = JSON.stringify(res.data.user)
+                localStorage.setItem('user', jsonDecode)
+            } else {
+                setIsLoading(false);
+                toast.error(res.data.message)
+            }
+        }).catch((err) => {
+            if (err.response && err.response.status === 403) {
+                setIsLoading(false);
+                setErrorMsg(err.response.data.message)
+            } else {
+                setIsLoading(false);
+                setErrorMsg("☹ Server is not responding ☹")
+            }
+        })
     }
 
     return (

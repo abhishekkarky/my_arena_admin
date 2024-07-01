@@ -5,6 +5,8 @@ import { MuiOtpInput } from 'mui-one-time-password-input';
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from "react-router-dom";
 import * as Yup from 'yup';
+import { registerUserApi, verifyNumberApi } from "../apis/api";
+import toast from "react-hot-toast";
 
 const Register = () => {
     const [errorMsg, setErrorMsg] = useState('');
@@ -39,81 +41,60 @@ const Register = () => {
         getLocation();
     }, [])
 
-    // const handleSignup = async (props) => {
-    //     setIsloading(true);
-    //     try {
-    //         const userData = {
-    //             fullName: props.fullName,
-    //             email: props.email,
-    //             password: props.password,
-    //             country: country,
-    //             city: city,
-    //         };
-    //         const res = await registerUserApi(userData);
-    //         if (res.data.success) {
-    //             addToast(res.data.message, {
-    //                 appearance: 'info',
-    //                 autoDismiss: 'true'
-    //             });
-    //             setIsloading(false);
-    //             setEmail(props.email);
-    //             setShowModal(true);
-    //         } else {
-    //             addToast(res.data.message, {
-    //                 appearance: 'error',
-    //                 autoDismiss: 'true'
-    //             });
-    //             setIsloading(false);
-    //         }
-    //     } catch (err) {
-    //         if (err.response && err.response.status === 403) {
-    //             addToast(err.response.data.message, {
-    //                 appearance: 'error',
-    //                 autoDismiss: 'true'
-    //             });
-    //             setIsloading(false);
-    //         } else {
-    //             setIsloading(false);
-    //             setErrorMsg("☹ Server is not responding ☹");
-    //             console.error(err);
-    //         }
-    //     }
-    // };
+    const handleSignup = async (props) => {
+        setIsloading(true);
+        try {
+            const userData = {
+                fullName: props.fullName,
+                number: props.number,
+                password: props.password,
+                country: country,
+                city: city,
+            };
+            const res = await registerUserApi(userData);
+            if (res.data.success) {
+                toast.success(res.data.message);
+                setIsloading(false);
+                setNumber(props.number);
+                setShowModal(true);
+            } else {
+                toast.error(res.data.message);
+                setIsloading(false);
+            }
+        } catch (err) {
+            if (err.response && err.response.status === 403) {
+                setErrorMsg(err.response.data.message);
+                setIsloading(false);
+            } else {
+                setIsloading(false);
+                setErrorMsg("☹ Server is not responding ☹");
+                console.error(err);
+            }
+        }
+    };
 
 
-    // const handleVerification = async (props) => {
-    //     setIsloading(true);
-    //     verifyEmailApi(props).then((res) => {
-    //         if (res.data.success) {
-    //             addToast(res.data.message, {
-    //                 appearance: 'success',
-    //                 autoDismiss: 'true'
-    //             })
-    //             navigate('/login')
-    //             setIsloading(false);
-    //         } else {
-    //             addToast(res.data.message, {
-    //                 appearance: 'error',
-    //                 autoDismiss: 'true'
-    //             })
-    //             setIsloading(false);
-    //         }
-    //     }).catch((err) => {
-    //         if (err.response && err.response.status === 403) {
-    //             addToast(err.response.data.message, {
-    //                 appearance: 'error',
-    //                 autoDismiss: 'true'
-    //             })
-    //             setIsloading(false);
-    //         } else {
-    //             addToast("Server not responding", {
-    //                 appearance: 'info',
-    //                 autoDismiss: 'true'
-    //             })
-    //             setIsloading(false);
-    //         }
-    //     })
-    // }
+    const handleVerification = async (props) => {
+        setIsloading(true);
+        verifyNumberApi(props).then((res) => {
+            if (res.data.success) {
+                toast.success(res.data.message);
+                navigate('/admin/login')
+                setIsloading(false);
+            } else {
+                toast.error(res.data.message);
+                setIsloading(false);
+            }
+        }).catch((err) => {
+            if (err.response && err.response.status === 403) {
+                toast.error(err.response.data.message);
+                setIsloading(false);
+            } else {
+                toast.error('☹ Server is not responding ☹');
+                setIsloading(false);
+            }
+        })
+    }
 
     return (
         <>
@@ -128,14 +109,11 @@ const Register = () => {
                         validationSchema={registerSchema}
                         onSubmit={(values, { setSubmitting }) => {
                             if (!values.agreementChecked) {
-                                // addToast("Please agree to the terms and conditions", {
-                                //     appearance: 'error',
-                                //     autoDismiss: 'true'
-                                // });
+                                toast.error("Please agree to the terms and conditions");
                                 setSubmitting(false);
                                 return;
                             }
-                            // handleSignup(values);
+                            handleSignup(values);
                         }}
                     >
                         {(props) => (
@@ -249,7 +227,7 @@ const Register = () => {
                                     initialValues={{ number: number, otp: '' }}
                                     validationSchema={otpSchema}
                                     onSubmit={(values) => {
-                                        // handleVerification(values)
+                                        handleVerification(values)
                                     }}
                                 >
                                     {(props) => (

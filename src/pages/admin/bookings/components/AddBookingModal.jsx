@@ -1,51 +1,97 @@
 import DialogContent from '@mui/joy/DialogContent';
 import Modal from '@mui/joy/Modal';
 import ModalDialog from '@mui/joy/ModalDialog';
-import { Field, Form, Formik } from 'formik';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import toast from 'react-hot-toast';
+import ReactSelect from 'react-select';
 import { Transition } from 'react-transition-group';
-import * as Yup from 'yup';
+import { createBookingApi, getAllAvailableTimeSlotsApi, getAllFutsalForBookingApi } from '../../../../apis/api';
+import moment from 'moment';
 
-const AddBookingModal = ({ open, onClose }) => {
-    const localUser = JSON.parse(localStorage.getItem('user'));
+const AddBookingModal = ({ open, onClose, setIsUpdated }) => {
+    const [futsals, setFutsals] = useState([]);
+    const [formData, setFormData] = useState({
+        user: '',
+        futsal: '',
+        date: '',
+        timeSlot: '',
+        paid: false
+    });
+    const [errors, setErrors] = useState({});
+    const [timeSlotOptions, setTimeSlotOptions] = useState([]);
 
-    const addBookingValidation = Yup.object().shape({
-        user: Yup.string().required('User is required').length(10, 'User must be 10 digits'),
-        futsal: Yup.string().required('Futsal is required'),
-        timeSlot: Yup.string().required('Time slot is required'),
-    })
+    useEffect(() => {
+        if (open) {
+            getAllFutsalForBookingApi().then(res => {
+                if (res.data.success) {
+                    setFutsals(res.data.futsals);
+                } else {
+                    toast.error('Could not fetch futsal data');
+                }
+            });
+        }
+    }, [open]);
 
-    const handleSubmit = async (props) => {
-        console.log(props)
-        // editUserPassword(localUser._id, props).then((res) => {
-        //     if (res.data.success === true) {
-        //         addToast(res.data.message, {
-        //             appearance: "success",
-        //             autoDismiss: "true",
-        //         });
-        //         onClose()
-        //     }
-        //     else {
-        //         addToast(res.data.message, {
-        //             appearance: "error",
-        //             autoDismiss: "true",
-        //         });
-        //     }
-        // }).catch(err => {
-        //     if (err.response && err.response.status === 403) {
-        //         addToast(err.response.data.message, {
-        //             appearance: "error",
-        //             autoDismiss: "true",
-        //         });
-        //     } else {
-        //         addToast('Something went wrong', {
-        //             appearance: "error",
-        //             autoDismiss: "true",
-        //         });
-        //         console.log(err.message);
-        //     }
-        // })
-    }
+    const validateForm = () => {
+        let formErrors = {};
+        if (!formData.user || formData.user.length !== 10) {
+            formErrors.user = 'User is required and must be 10 digits';
+        }
+        if (!formData.futsal) {
+            formErrors.futsal = 'Futsal is required';
+        }
+        if (!formData.date) {
+            formErrors.date = 'Date is required';
+        }
+        if (!formData.timeSlot) {
+            formErrors.timeSlot = 'Time slot is required';
+        }
+        setErrors(formErrors);
+        return Object.keys(formErrors).length === 0;
+    };
+
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleSelectChange = (name, option) => {
+        setFormData(prev => ({ ...prev, [name]: option }));
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        if (!validateForm()) return;
+        const bookingData = {
+            ...formData,
+            date: moment(formData.date),
+            timeSlot: formData.timeSlot.map(slot => slot.value)
+        };
+        createBookingApi(bookingData).then(res => {
+            if (res.data.success) {
+                toast.success(res.data.message);
+                setIsUpdated(true);
+                onClose();
+            }
+        }).catch(err => {
+            if (err.response && err.response.status === 403) {
+                toast.error(err.response.data.message);
+            }
+        });
+    };
+
+    useEffect(() => {
+        if (formData.futsal && formData.date) {
+            getAllAvailableTimeSlotsApi(formData.futsal, formData.date).then(res => {
+                if (res.data.success) {
+                    setTimeSlotOptions(res.data.timeSlots.map(slot => ({ label: `${slot.startTime} - ${slot.endTime}`, value: slot._id })));
+                } else {
+                    toast.error('Failed to fetch time slots');
+                }
+            });
+        }
+    }, [formData.futsal, formData.date]);
+
     return (
         <React.Fragment>
             <Transition in={open} timeout={400}>
@@ -54,22 +100,7 @@ const AddBookingModal = ({ open, onClose }) => {
                         keepMounted
                         open={!['exited', 'exiting'].includes(state)}
                         onClose={onClose}
-                        slotProps={{
-                            backdrop: {
-                                sx: {
-                                    opacity: 0,
-                                    backdropFilter: 'none',
-                                    transition: `opacity 400ms, backdrop-filter 400ms`,
-                                    ...{
-                                        entering: { opacity: 1, backdropFilter: 'blur(8px)' },
-                                        entered: { opacity: 1, backdropFilter: 'blur(8px)' },
-                                    }[state],
-                                },
-                            },
-                        }}
-                        sx={{
-                            visibility: state === 'exited' ? 'hidden' : 'visible',
-                        }}
+                        sx={{ visibility: state === 'exited' ? 'hidden' : 'visible' }}
                     >
                         <ModalDialog
                             sx={{
@@ -85,74 +116,60 @@ const AddBookingModal = ({ open, onClose }) => {
                             }}
                         >
                             <DialogContent>
-                                <Formik
-                                    initialValues={{ user: '', futsal: '', timeSlot: '', paid: false }}
-                                    validationSchema={addBookingValidation}
-                                    onSubmit={(values) => {
-                                        handleSubmit(values);
-                                    }}
-                                >
-                                    {(props) => (
-                                        <Form className="md:w-[400px] w-full h-auto flex flex-col gap-y-3 mx-auto my-auto text-neutral-700 border rounded-lg p-4">
-                                            <p className='text-2xl mb-3'>Add <span className='text-green-600 mr-2'>Booking</span></p>
-                                            <label className='text-md'>User</label>
-                                            <Field className='border rounded-md p-3 outline-none' type='tel' name="user" placeholder="9800000000" value={props.values.user} onChange={props.handleChange("user")} />
-                                            {props.errors.user ??
-                                                props.touched.user ? (
-                                                <p className='text-[12px]' style={{ color: "#dc3545" }}>
-                                                    {props.errors.user}
-                                                </p>
-                                            ) : null
-                                            }
-                                            <label className='text-md'>Which Futsal?</label>
-                                            <select value={props.values.futsal} onChange={props.handleChange("futsal")} className='border rounded-md p-3 outline-none h-[50px]' name="futsal">
-                                                <option value="">Select Futsal</option>
-                                                <option value="Futsal 1">Futsal 1</option>
-                                                <option value="Futsal 2">Futsal 2</option>
-                                                <option value="Futsal 3">Futsal 3</option>
-                                                <option value="Futsal 4">Futsal 4</option>
-                                            </select>
-                                            {props.errors.futsal
-                                                ?? props.touched.futsal ? (
-                                                <p className='text-[12px]' style={{ color: "#dc3545" }}>
-                                                    {props.errors.futsal}
-                                                </p>
-                                            ) : null
-                                            }
-                                            <label className='text-md'>Time Slot</label>
-                                            <select value={props.values.timeSlot} onChange={props.handleChange("timeSlot")} className='border rounded-md p-3 outline-none h-[50px]' name="timeSlot">
-                                                <option value="">Select Time Slot</option>
-                                                <option value="10:00 AM - 11:00 A.M">10:00 AM - 11:00 A.M</option>
-                                                <option value="11:00 AM - 12:00 P.M">11:00 AM - 12:00 P.M</option>
-                                                <option value="12:00 P.M - 01:00 P.M">12:00 P.M - 01:00 P.M</option>
-                                                <option value="01:00 P.M - 02:00 P.M">01:00 P.M - 02:00 P.M</option>
-                                                <option value="02:00 P.M - 03:00 P.M">02:00 P.M - 03:00 P.M</option>
-                                            </select>
-                                            {props.errors.timeSlot
-                                                ?? props.touched.timeSlot ? (
-                                                <p className='text-[12px]' style={{ color: "#dc3545" }}>
-                                                    {props.errors.timeSlot}
-                                                </p>
-                                            ) : null
-                                            }
-                                            <label className='text-md'>Payment</label>
-                                            <select value={props.values.paid} onChange={props.handleChange("paid")} className='border rounded-md p-3 outline-none h-[50px]' name="paid">
-                                                <option value="">Select Payment</option>
-                                                <option value="true">Paid</option>
-                                                <option value="false">Unpaid</option>
-                                            </select>
-                                            {props.errors.paid
-                                                ?? props.touched.paid ? (
-                                                <p className='text-[12px]' style={{ color: "#dc3545" }}>
-                                                    {props.errors.paid}
-                                                </p>
-                                            ) : null
-                                            }
-                                            <button className='text-md w-[150px] h-[40px] bg-black rounded-md text-white mt-5' type="submit">Add Booking</button>
-                                        </Form>
-                                    )}
-
-                                </Formik>
+                                <form onSubmit={handleSubmit} className="md:w-[400px] w-full h-auto flex flex-col gap-y-3 mx-auto my-auto text-neutral-700 border rounded-lg p-4">
+                                    <p className='text-2xl mb-3'>Add <span className='text-green-600 mr-2'>Booking</span></p>
+                                    <label className='text-md'>User</label>
+                                    <input
+                                        type='tel'
+                                        name="user"
+                                        placeholder="9800000000"
+                                        value={formData.user}
+                                        onChange={handleChange}
+                                        className='border rounded-md p-3 outline-none'
+                                    />
+                                    {errors.user && <p className='text-[12px]' style={{ color: "#dc3545" }}>{errors.user}</p>}
+                                    <label className='text-md'>Which Futsal?</label>
+                                    <select
+                                        name="futsal"
+                                        value={formData.futsal}
+                                        onChange={handleChange}
+                                        className='border rounded-md p-3 outline-none h-[50px]'
+                                    >
+                                        <option value="">Select Futsal</option>
+                                        {futsals.map(futsal => (
+                                            <option key={futsal._id} value={futsal._id}>{futsal.location}</option>
+                                        ))}
+                                    </select>
+                                    {errors.futsal && <p className='text-[12px]' style={{ color: "#dc3545" }}>{errors.futsal}</p>}                                    <label className='text-md'>Select Date</label>
+                                    <input
+                                        type='date'
+                                        name="date"
+                                        value={formData.date}
+                                        onChange={handleChange}
+                                        className='border rounded-md p-3 outline-none'
+                                    />
+                                    {errors.date && <p className='text-[12px]' style={{ color: "#dc3545" }}>{errors.date}</p>}
+                                    <label className='text-md'>Time Slot</label>
+                                    <ReactSelect
+                                        isMulti
+                                        name="timeSlot"
+                                        options={timeSlotOptions}
+                                        onChange={option => handleSelectChange('timeSlot', option)}
+                                    />
+                                    {errors.timeSlot && <p className='text-[12px]' style={{ color: "#dc3545" }}>{errors.timeSlot}</p>}
+                                    <label className='text-md'>Payment</label>
+                                    <select
+                                        name="paid"
+                                        value={formData.paid}
+                                        onChange={handleChange}
+                                        className='border rounded-md p-3 outline-none h-[50px]'
+                                    >
+                                        <option value="false">Unpaid</option>
+                                        <option value="true">Paid</option>
+                                    </select>
+                                    {errors.paid && <p className='text-[12px]' style={{ color: "#dc3545" }}>{errors.paid}</p>}
+                                    <button type="submit" className='w-[150px] h-[40px] bg-black rounded-md text-white mt-5'>Add Booking</button>
+                                </form>
                             </DialogContent>
                         </ModalDialog>
                     </Modal>
@@ -160,6 +177,6 @@ const AddBookingModal = ({ open, onClose }) => {
             </Transition>
         </React.Fragment>
     );
-}
+};
 
 export default AddBookingModal;

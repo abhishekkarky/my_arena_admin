@@ -6,11 +6,13 @@ import React, { useState } from 'react';
 import toast from 'react-hot-toast';
 import { Transition } from 'react-transition-group';
 import * as Yup from 'yup';
+import { addFutsalApi } from '../../../../apis/api';
 
-const AddFutsalModal = ({ open, onClose }) => {
+const AddFutsalModal = ({ open, onClose, setIsUpdated }) => {
     const localUser = JSON.parse(localStorage.getItem('user'));
     const [futsalImage, setFutsalImage] = useState(null);
     const [previewFutsalImage, setPreviewFutsalImage] = useState(null);
+    const [isLoading, setIsLoading] = useState(false);
 
     const addFutsalValidation = Yup.object().shape({
         name: Yup.string().required('Futsal name is required'),
@@ -29,39 +31,36 @@ const AddFutsalModal = ({ open, onClose }) => {
         setPreviewFutsalImage(URL.createObjectURL(e.target.files[0]));
     }
     const handleSubmit = async (props) => {
-        console.log(props)
+        setIsLoading(true);
         if (!futsalImage) {
             toast.error('Futsal image is required');
         }
-        // editUserPassword(localUser._id, props).then((res) => {
-        //     if (res.data.success === true) {
-        //         addToast(res.data.message, {
-        //             appearance: "success",
-        //             autoDismiss: "true",
-        //         });
-        //         onClose()
-        //     }
-        //     else {
-        //         addToast(res.data.message, {
-        //             appearance: "error",
-        //             autoDismiss: "true",
-        //         });
-        //     }
-        // }).catch(err => {
-        //     if (err.response && err.response.status === 403) {
-        //         addToast(err.response.data.message, {
-        //             appearance: "error",
-        //             autoDismiss: "true",
-        //         });
-        //     } else {
-        //         addToast('Something went wrong', {
-        //             appearance: "error",
-        //             autoDismiss: "true",
-        //         });
-        //         console.log(err.message);
-        //     }
-        // })
+        const formData = new FormData();
+        formData.append('name', props.name);
+        formData.append('location', props.location);
+        formData.append('groundSize', props.groundSize);
+        formData.append('price', props.price);
+        formData.append('lat', props.lat);
+        formData.append('long', props.long);
+        formData.append('startTime', props.startTime);
+        formData.append('endTime', props.endTime);
+        formData.append('dayOfWeek', props.dayOfWeek);
+        formData.append('futsalImage', futsalImage);
+        addFutsalApi(formData).then((res) => {
+            if (res.data.success) {
+                toast.success(res.data.message);
+                onClose();
+                setFutsalImage(null);
+                setPreviewFutsalImage(null);
+                setIsLoading(false);
+                setIsUpdated(true)
+            } else {
+                toast.error(res.data.message);
+                setIsLoading(false);
+            }
+        })
     }
+
     return (
         <React.Fragment>
             <Transition in={open} timeout={400}>
@@ -252,7 +251,7 @@ const AddFutsalModal = ({ open, onClose }) => {
                                                 </p>
                                             ) : null
                                             } */}
-                                            <button className='text-md w-[150px] h-[40px] bg-black rounded-md text-white mt-5' type="submit">Add Futsal</button>
+                                            <button className='text-md w-[150px] h-[40px] bg-black rounded-md text-white mt-5' type="submit">{isLoading ? 'Adding...' : 'Add'} Futsal</button>
                                         </Form>
                                     )}
 
