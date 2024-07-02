@@ -1,32 +1,29 @@
 import moment from 'moment';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import Loader from '../../../../components/Loader';
+import toast from 'react-hot-toast';
+import { getVendorDataForGraphApi } from '../../../../apis/api';
 
 const VendorLineChart = () => {
     const [vendorData, setVendorData] = useState([0]);
     const [loading, setLoading] = useState(false);
     const [year] = useState(moment().format('YYYY'))
 
-    // useEffect(() => {
-    //     const fetchData = async () => {
-    //         try {
-    //             const broadcastResponse = await getTotalBroadcastGraphData();
-    //             const smsBroadcastResponse = await getTotalSmsBroadcastGraphData();
-    //             setvendorData(broadcastResponse.data.counts);
-    //             setSmsvendorData(smsBroadcastResponse.data.counts);
-    //             setLoading(false)
-    //         } catch (error) {
-    //             console.error("Error fetching data:", error);
-    //             addToast('Error fetching broadcast and sms broadcast data', {
-    //                 appearance: 'info',
-    //                 autoDismiss: true
-    //             });
-    //             setLoading(false);
-    //         }
-    //     };
-    //     fetchData();
-    // }, []);
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const vendorResponse = await getVendorDataForGraphApi();
+                setVendorData(vendorResponse.data.counts);
+                setLoading(false)
+            } catch (error) {
+                console.error("Error fetching data:", error);
+                toast.error('Error fetching vendor data for graph');
+                setLoading(false);
+            }
+        };
+        fetchData();
+    }, []);
 
     const CustomTooltip = ({ active, payload, label }) => {
         if (active && payload && payload.length) {

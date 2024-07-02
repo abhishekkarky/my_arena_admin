@@ -9,7 +9,6 @@ const VendorDashboardCounts = () => {
     const [totalBookingCount, setTotalBookingCount] = useState(0);
     const [totalBookingGrowth, setTotalBookingGrowth] = useState(0);
     const [totalNotificationCount, setTotalNotificationCount] = useState(0);
-    const [totalNotificationGrowth, setTotalNotificationGrowth] = useState(0);
     const [todayTotalRevenue, setTodayTotalRevenue] = useState(0);
     const [overallRevenue, setOverallRevenue] = useState(0);
     const [totalRevenueGrowth, setTotalRevenueGrowth] = useState(0);
@@ -49,7 +48,6 @@ const VendorDashboardCounts = () => {
         getNotificationCountAndGrowthApi().then((response) => {
             if (response.data.success === true) {
                 setTotalNotificationCount(response.data.count);
-                setTotalNotificationGrowth(response.data.growth);
                 setIsLoading(false);
             }
         }).catch((error) => {
@@ -135,13 +133,7 @@ const VendorDashboardCounts = () => {
                 <div className="flex flex-col items-start justify-center gap-y-1 flex-grow min-w-[200px]">
                     <p className='uppercase font-medium'>Unread Notifications</p>
                     <p className='font-semibold text-4xl'>{isLoading ? 'Loading...' : totalNotificationCount}</p>
-                    {
-                        totalNotificationGrowth && totalNotificationGrowth > 0 ?
-                            <p className='text-green-600 mt-1'>+{totalNotificationGrowth.toFixed(2) ?? 0}% since last month</p> :
-                            totalNotificationGrowth && totalNotificationGrowth < 0 ?
-                                <p className='text-red-600 mt-1'>{totalNotificationGrowth.toFixed(2) ?? 0}% since last month</p> :
-                                <p className='text-red-600 mt-1'>0% since last month</p>
-                    }
+                    <p className='text-green-600 mt-1'>No Calculations performed</p>
                 </div>
             </div>
         </main>

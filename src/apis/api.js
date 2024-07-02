@@ -37,6 +37,22 @@ export const loginUserApi = (data) => Api.post("/api/user/login", data);
 export const getUserByIdApi = (id) =>
   Api.get(`/api/user/getUserById/${id}`, config);
 
+// update user image api
+export const updateUserImageApi = (id, formData) =>
+  ApiWithFormData.put(`/api/user/uploadImage/${id}`, formData);
+
+// update user detail api
+export const editUserApi = (id, formData) =>
+  Api.put(`/api/user/editProfile/${id}`, formData);
+
+// update user password
+export const editUserPassword = (id, formData) =>
+  Api.put(`/api/user/editPassword/${id}`, formData);
+
+// Store FCM Token for Notification
+export const storeFcmTokenApi = (data) =>
+  Api.put("/api/user/storeFCMToken", data, config);
+
 // Vendor Futsal Apis
 
 // Add Futsal Api
@@ -112,7 +128,6 @@ export const getAllAvailableTimeSlotsApi = (futsalId, date) =>
 export const deleteBookingbyId = (id) =>
   Api.delete(`/api/booking/delete/${id}`, config);
 
-
 // creating Notification Routes for vendor
 
 // Get Notification Count and Growth for vendor
@@ -142,7 +157,7 @@ export const getRevenueTotalsApi = () =>
 export const getRevenueDataForGraphApi = () =>
   Api.get("/api/paymentLog/revenueForGraph", config);
 
-// Superadmin futsal apis
+// Superadmin apis
 
 // All Futsal Api
 export const getAllFutsalForSuperAdmin = (
@@ -153,6 +168,83 @@ export const getAllFutsalForSuperAdmin = (
   endDate
 ) =>
   Api.get(
-    `/api/futsal/all?page=${page}&limit=${limit}&searchQuery=${searchQuery}&startDate=${startDate}&endDate=${endDate}`,
+    `/api/superadmin/futsal/all?page=${page}&limit=${limit}&searchQuery=${searchQuery}&startDate=${startDate}&endDate=${endDate}`,
     config
   );
+
+// get futsal count and growth for admin
+export const getFutsalCountAndGrowthForAdminApi = () =>
+  Api.get("/api/superadmin/futsal/countAndGrowth", config);
+
+// get all user data for admin
+export const getAllUsersApi = (page, limit, searchQuery, startDate, endDate) =>
+  Api.get(
+    `/api/superadmin/user/all?page=${page}&limit=${limit}&searchQuery=${searchQuery}&startDate=${startDate}&endDate=${endDate}`,
+    config
+  );
+
+// get country count of user for admin
+export const getCountryCountForUserApi = () =>
+  Api.get("/api/superadmin/user/countryCount", config);
+
+// get user data for graph for admin
+export const getUserDataForGraphApi = () =>
+  Api.get("/api/superadmin/user/countForGraph", config);
+
+// get user count and growth for admin
+export const getUserCountAndGrowthApi = () =>
+  Api.get("/api/superadmin/user/countAndGrowth", config);
+
+// get all vendor data for admin
+export const getAllVendorsApi = (
+  page,
+  limit,
+  searchQuery,
+  startDate,
+  endDate
+) =>
+  Api.get(
+    `/api/superadmin/vendor/all?page=${page}&limit=${limit}&searchQuery=${searchQuery}&startDate=${startDate}&endDate=${endDate}`,
+    config
+  );
+
+// get country count of vendor for admin
+export const getCountryCountForVendorApi = () =>
+  Api.get("/api/superadmin/vendor/countryCount", config);
+
+// get vendor data for graph for admin
+export const getVendorDataForGraphApi = () =>
+  Api.get("/api/superadmin/vendor/countForGraph", config);
+
+// get vendor count and growth for admin
+export const getVendorCountAndGrowthApi = () =>
+  Api.get("/api/superadmin/vendor/countAndGrowth", config);
+
+// get all payment logs for admin
+export const getAllPaymentLogsForAdmin = (
+  page,
+  limit,
+  searchQuery,
+  startDate,
+  endDate
+) =>
+  Api.get(
+    `/api/superadmin/paymentLogs/all?page=${page}&limit=${limit}&searchQuery=${searchQuery}&startDate=${startDate}&endDate=${endDate}`,
+    config
+  );
+
+// get revenue totals for admin
+export const getRevenueTotalsForAdminApi = () =>
+  Api.get("/api/superadmin/paymentLogs/revenueTotal", config);
+
+// get booking data for graph for admin
+export const getBookingDataForGraphForAdminApi = () =>
+  Api.get("/api/superadmin/booking/countForGraph", config)
+
+// get booking count and growth for admin
+export const getBookingCountAndGrowthForAdminApi = () =>
+  Api.get("/api/superadmin/booking/countAndGrowth", config)
+
+// get notification count and growth for admin
+export const getNotificationCountAndGrowthForAdminApi = () =>
+  Api.get("/api/superadmin/notification/countAndGrowth", config)

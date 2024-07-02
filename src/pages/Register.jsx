@@ -202,7 +202,7 @@ const Register = () => {
                                 <button className='text-md w-full h-[45px] bg-black rounded-md text-white' type="submit">
                                     {isLoading ? <div className="w-full h-full flex justify-center items-center"><CircularProgress size={22} color="inherit" /></div> : 'Register'}
                                 </button>
-                                <div className="w-full text-right -mt-1"><Link to="/login" className='text-black hover:text-primary text-sm'>Already have an account ?</Link></div>
+                                <div className="w-full text-right -mt-1"><Link to="/admin/login" className='text-black hover:text-primary text-sm'>Already have an account ?</Link></div>
                             </Form>
                         )}
                     </Formik>

@@ -160,7 +160,7 @@ const Login = () => {
                             </button>
                             <div className="w-full flex justify-between mb-3 -mt-1">
                                 <Link to="/" className='text-black hover:text-primary text-sm'>Back to Homepage ?</Link>
-                                <Link to="/signup" className='text-black hover:text-primary text-sm'>No account ?</Link>
+                                <Link to="/admin/register" className='text-black hover:text-primary text-sm'>No account ?</Link>
                             </div>
                         </Form>
                     )}

@@ -4,8 +4,10 @@ import Switch from '@mui/material/Switch';
 import { styled } from '@mui/material/styles';
 import { Field, Form, Formik } from 'formik';
 import moment from 'moment-timezone';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import toast from 'react-hot-toast';
 import * as Yup from 'yup';
+import { editUserApi, getUserByIdApi, updateUserImageApi } from '../../../../apis/api';
 
 const VisuallyHiddenInput = styled('input')({
     clip: 'rect(0 0 0 0)',
@@ -126,7 +128,6 @@ const EditProfileTab = () => {
     const [address, setAddress] = useState('')
     const [number, setNumber] = useState('')
     const [userTimeZone, setUserTimeZone] = useState(0)
-    const [imageView, setImageView] = useState(false)
     const [userImage, setUserImage] = useState('')
     const [previewImage, setPreviewImage] = useState(null);
 
@@ -134,23 +135,21 @@ const EditProfileTab = () => {
         fullName: Yup.string().required('Full name is required'),
         email: Yup.string().required('Email is required').email('Invalid Email address'),
         address: Yup.string().required('Address is required'),
-        number: Yup.string().required('Number is required')
+        number: Yup.string().required('Number is required'),
+        userTimeZone: Yup.string().required('User time zone is required')
     })
 
-    // useEffect(() => {
-    //     getUserByIdApi(localUser._id).then((res) => {
-    //         setUser(res.data.userDetail);
-    //         setFullName(res.data.userDetail.fullName);
-    //         setEmail(res.data.userDetail.email);
-    //         setAddress(res.data.userDetail.address);
-    //         setNumber(res.data.userDetail.number);
-    //         setUserImage(res.data.userDetail.userImageUrl);
-    //         setWantsScheduledNotification(res.data.userDetail.wantsScheduledNotifications);
-    //         setImageView(res.data.userDetail.useImageInBroadcast)
-    //         setUserTimeZone(res.data.userDetail.userTimeZone)
-    //         setTotalCredit(res.data.userDetail.totalCredit)
-    //     })
-    // }, [updated])
+    useEffect(() => {
+        getUserByIdApi(localUser._id).then((res) => {
+            setUser(res.data.userDetail);
+            setFullName(res.data.userDetail.fullName);
+            setEmail(res.data.userDetail.email);
+            setAddress(res.data.userDetail.address);
+            setNumber(res.data.userDetail.number);
+            setUserImage(res.data.userDetail.userImageUrl);
+            setUserTimeZone(res.data.userDetail.userTimeZone)
+        })
+    }, [updated])
 
     const handleImageUpload = (event) => {
         if (event.target.files && event.target.files.length > 0) {
@@ -164,16 +163,10 @@ const EditProfileTab = () => {
                     setPreviewImage(URL.createObjectURL(file));
                     handleImageUploadAndSubmit(file);
                 } else {
-                    // addToast('Image size exceeds 1 MB. Please select a smaller size image.', {
-                    //     appearance: 'info',
-                    //     autoDismiss: true,
-                    // });
+                    toast.error('Image size exceeds 1 MB. Please select a smaller size image.');
                 }
             } else {
-                // addToast('File format not supported. Please select a .png, .jpeg, or .jpg file.', {
-                //     appearance: 'info',
-                //     autoDismiss: true,
-                // })
+                toast.error('File format not supported. Please select a .png, .jpeg, or .jpg file.');
             }
         } else {
             console.log('No file selected');
@@ -186,68 +179,44 @@ const EditProfileTab = () => {
         formData.append("userImage", userImage)
         console.log(userImage)
 
-        // updateUserImageApi(localUser._id, formData)
-        //     .then((res) => {
-        //         if (res.data.success === true) {
-        //             addToast(res.data.message, {
-        //                 appearance: 'success',
-        //                 autoDismiss: 'true'
-        //             })
-        //             setIsUpdated((v) => !v)
-        //         } else {
-        //             addToast(res.data.message, {
-        //                 appearance: 'error',
-        //                 autoDismiss: 'true'
-        //             })
-        //         }
-        //     })
-        //     .catch((err) => {
-        //         if (err.response && err.response.status === 403) {
-        //             addToast(err.response.data.message, {
-        //                 appearance: 'error',
-        //                 autoDismiss: 'true'
-        //             })
-        //         } else {
-        //             addToast(err.response.data.message, {
-        //                 appearance: 'error',
-        //                 autoDismiss: 'true'
-        //             })
-        //             console.log(err.message);
-        //         }
-        //     });
+        updateUserImageApi(localUser._id, formData)
+            .then((res) => {
+                if (res.data.success === true) {
+                    toast.success(res.data.message)
+                    setIsUpdated((v) => !v)
+                } else {
+                    toast.error(res.data.message)
+                }
+            })
+            .catch((err) => {
+                if (err.response && err.response.status === 403) {
+                    toast.error(err.response.data.message)
+                } else {
+                    toast.error(err.response.data.message)
+                    console.log(err.message);
+                }
+            });
     }
 
     const handleSubmit = async (props) => {
-        // editUserApi(localUser._id, props)
-        //     .then((res) => {
-        //         if (res.data.success === true) {
-        //             addToast(res.data.message, {
-        //                 appearance: 'success',
-        //                 autoDismiss: 'true'
-        //             })
-        //             setIsUpdated((v) => !v)
-        //             window.location.reload();
-        //         } else {
-        //             addToast(res.data.message, {
-        //                 appearance: 'error',
-        //                 autoDismiss: 'true'
-        //             })
-        //         }
-        //     })
-        //     .catch((err) => {
-        //         if (err.response && err.response.status === 403) {
-        //             addToast(err.response.data.message, {
-        //                 appearance: 'error',
-        //                 autoDismiss: 'true'
-        //             })
-        //         } else {
-        //             addToast(err.response.data.message, {
-        //                 appearance: 'error',
-        //                 autoDismiss: 'true'
-        //             })
-        //             console.log(err.message);
-        //         }
-        //     });
+        editUserApi(localUser._id, props)
+            .then((res) => {
+                if (res.data.success === true) {
+                    toast.success(res.data.message)
+                    setIsUpdated((v) => !v)
+                } else {
+                    toast.error(res.data.message)
+                }
+            })
+            .catch((err) => {
+                if (err.response && err.response.status === 403) {
+                    toast.error(err.response.data.message)
+
+                } else {
+                    toast.error(err.response.data.message)
+                    console.log(err.message);
+                }
+            });
     }
 
     const getAllTimeZones = () => {
@@ -270,7 +239,7 @@ const EditProfileTab = () => {
                             <h1 className='text-2xl mb-2'>Edit </h1>
                             <div className='flex flex-col'>
                                 <div className='flex justify-start items-center'>
-                                    <img src={previewImage || (userImage || '/assets/images/userImage.png')} className='image-preview w-[120px] h-[120px] object-cover rounded-full' alt="" />
+                                    <img src={previewImage || (userImage || '/assets/images/default_user.png')} className='image-preview w-[120px] h-[120px] object-cover rounded-full' alt="" />
                                     <div className="ml-4 w-full flex flex-col items-start justify-around gap-y-1">
                                         <p className='font-medium text-lg'>Profile picture</p>
                                         <Button
@@ -356,6 +325,14 @@ const EditProfileTab = () => {
                                                 <option key={index} value={timezone}>{timezone}</option>
                                             ))}
                                         </Field>
+                                        {props.errors.userTimeZone &&
+                                            props.touched.userTimeZone ?
+                                            (
+                                                <p className='text-[12px] text-[#dc3545]'>
+                                                    {props.errors.userTimeZone}
+                                                </p>
+                                            ) : null
+                                        }
                                     </div>
                                 </div>
                                 <div className="md:flex md:flex-row flex-col items-end justify-end w-full mt-4 p-4 rounded-[8px] gap-y-5">

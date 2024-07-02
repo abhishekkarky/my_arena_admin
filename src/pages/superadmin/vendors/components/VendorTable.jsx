@@ -1,11 +1,27 @@
 import { Forbidden, Trash } from 'iconsax-react';
-import React, { useState } from 'react';
+import moment from 'moment';
+import React, { useEffect, useState } from 'react';
 import ReactPaginate from 'react-paginate';
 import Swal from 'sweetalert2';
+import { getAllVendorsApi } from '../../../../apis/api';
 import getRandomColorFromList from '../../../../components/RandomColor';
 
-const VendorTable = () => {
+const VendorTable = ({ searchQuery, startDate, endDate }) => {
     const [isLoading, setIsLoading] = useState(false);
+    const [vendors, setVendors] = useState([]);
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 20;
+    const [totalvendorCount, setTotalVendorCount] = useState(0);
+
+    useEffect(() => {
+        getAllVendorsApi(currentPage, itemsPerPage, searchQuery, startDate, endDate).then((res) => {
+            if (res.data.success === true) {
+                setVendors(res.data.vendors);
+                setTotalVendorCount(res.data.totalCount);
+                setIsLoading(false);
+            }
+        })
+    }, [currentPage, searchQuery, startDate, endDate])
 
     function handleDelete() {
         Swal.fire({
@@ -50,6 +66,11 @@ const VendorTable = () => {
             }
         })
     }
+
+    const handlePageClick = (data) => {
+        const currentPage = data.selected + 1;
+        setCurrentPage(currentPage);
+    }
     return (
         <>
             <div class="relative overflow-auto">
@@ -80,67 +101,61 @@ const VendorTable = () => {
                         {
                             isLoading ?
                                 <tr>
-                                    <td colSpan="5" className='border-l border-b py-5'>
+                                    <td colSpan="6" className='border-l border-b py-5'>
                                         <div className='px-5 text-xl font-medium text-red-500'>Loading...</div>
                                     </td>
                                 </tr> :
                                 <>
-                                    {/* {subscriber && subscriber.length > 0 ? subscriber.map((subscriber, index) => ( */}
-                                    <tr class="border-b hover:bg-white">
-                                        <th scope="row" class="px-6 py-4 font-medium text-gray-700 whitespace-nowrap">
-                                            <input className='h-[35px] w-[35px] rounded-full text-white text-center outline-none border-none' style={{ backgroundColor: getRandomColorFromList() }} type="text" value={'W'} readOnly />
-                                        </th>
-                                        <td class="px-6 py-4">
-                                            <div className="flex flex-col gap-1">
-                                                <p>Abhishek karki</p>
-                                                <p>abhishekkarki40@gmail.com</p>
-                                                {/* <Link to={`/subscriber-detail/${subscriber._id}`} className='flex text-base hover:text-primary'>{subscriber.fullName}</Link>
-                                                    <p>{subscriber.email}</p> */}
-                                            </div>
-                                        </td>
-                                        <td class="px-6 py-4">
-                                            test
-                                            {/* {moment(subscriber.createdAt).format('MMM Do, YYYY, h:mm A')} */}
-                                        </td>
-                                        <td class="px-6 py-4">
-                                            test
-                                            {/* {moment(subscriber.createdAt).format('MMM Do, YYYY, h:mm A')} */}
-                                        </td>
-                                        <td class="px-6 py-4">
-                                            test
-                                            {/* {subscriber.broadcasts.length} */}
-                                        </td>
-                                        <td class="px-6 py-4">
-                                            <div className="flex items-center gap-2">
-                                                <button onClick={handleBlockStatus} className='text-neutral-700 hover:text-red-500'>
-                                                    <Forbidden size={20} />
-                                                </button>
-                                                <button onClick={handleDelete} className='text-neutral-700 hover:text-red-500'>
-                                                    <Trash size={22} />
-                                                </button>
-                                            </div>
-                                            {/* {subscriber.inGroup.length} */}
-                                        </td>
-                                    </tr>
-                                    {/* )) :
-                                        <tr className='w-full border-b dark:border-neutral-700'>
-                                            <td colSpan="5" className='border-l border-b py-5'>
-                                                <div className='px-5 text-xl font-medium text-red-500'>No Data Found</div>
-                                            </td>
-                                        </tr>
-                                    } */}
+                                    {
+                                        vendors && vendors.length > 0 ? vendors.map((vendor, index) => (
+                                            <tr class="border-b hover:bg-white">
+                                                <th scope="row" class="px-6 py-4 font-medium text-gray-700 whitespace-nowrap">
+                                                    <input className='h-[35px] w-[35px] rounded-full text-white text-center outline-none border-none' style={{ backgroundColor: getRandomColorFromList() }} type="text" value={vendor && vendor.fullName.charAt(0)} readOnly />
+                                                </th>
+                                                <td class="px-6 py-4">
+                                                    <div className="flex flex-col gap-1">
+                                                        <p>{vendor.fullName}</p>
+                                                        <p>{vendor.number}</p>
+                                                        <p>{vendor.email}</p>
+                                                    </div>
+                                                </td>
+                                                <td class="px-6 py-4">
+                                                    {moment(vendor.createdAt).format('MMM Do, YYYY, h:mm A')}
+                                                </td>
+                                                <td class="px-6 py-4">
+                                                    {vendor.isBlocked ? 'Blocked' : 'Unblocked'}
+                                                </td>
+                                                <td class="px-6 py-4">
+                                                    {vendor.totalFutsals}
+                                                </td>
+                                                <td class="px-6 py-4">
+                                                    <div className="flex items-center gap-2">
+                                                        <button onClick={handleBlockStatus} className='text-neutral-700 hover:text-red-500'>
+                                                            <Forbidden size={20} />
+                                                        </button>
+                                                        <button onClick={handleDelete} className='text-neutral-700 hover:text-red-500'>
+                                                            <Trash size={22} />
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        )) :
+                                            <tr className='w-full border-b dark:border-neutral-700'>
+                                                <td colSpan="6" className='border-l border-b py-5'>
+                                                    <div className='px-5 text-xl font-medium text-red-500'>No Data Found</div>
+                                                </td>
+                                            </tr>
+                                    }
                                 </>
                         }
                     </tbody>
                 </table>
-                {/* {
-                    subscriber && subscriber.length > 0 ? */}
                 <ReactPaginate
                     className="flex items-center border rounded-lg text-neutral-700 my-2 p-auto w-max"
-                    pageCount={2}
+                    pageCount={Math.ceil(totalvendorCount / itemsPerPage)}
                     pageRangeDisplayed={2}
                     marginPagesDisplayed={2}
-                    // onPageChange={handlePageClick}
+                    onPageChange={handlePageClick}
                     containerClassName={'pagination flex'}
                     previousLabel={<span className="flex items-center justify-center text-neutral-700 px-2 py-1">Previous</span>}
                     nextLabel={<span className="flex items-center justify-center text-neutral-700 px-2 py-1">Next</span>}
@@ -154,9 +169,6 @@ const VendorTable = () => {
                     breakLinkClassName="flex items-center justify-center px-2 py-1"
                     activeLinkClassName="text-primary"
                 />
-                {/* :
-                        null
-                } */}
             </div>
         </>
     )

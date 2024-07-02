@@ -190,7 +190,7 @@ const PaymentSettings = () => {
     //     })
     // }
     return (
-        <main className={`bg-white p-4 -m-4 rounded-[8px] text-neutral-700 min-h-[480px] ${isLoading ? 'pointer-events-none' : ''}`}>
+        <main className={`bg-white p-4 -m-4 rounded-[8px] text-neutral-700 min-h-[480px] border ${isLoading ? 'pointer-events-none' : ''}`}>
             <h1 className='text-2xl py-4'>Payment Settings </h1>
             <p>Manage all your payment settings. You can remove them anytime either by editing and deleting your payment methods.</p>
             <hr className='border my-3' />

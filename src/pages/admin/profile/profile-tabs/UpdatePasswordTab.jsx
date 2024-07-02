@@ -3,8 +3,10 @@ import Modal from '@mui/joy/Modal';
 import ModalDialog from '@mui/joy/ModalDialog';
 import { Field, Form, Formik } from 'formik';
 import * as React from 'react';
+import toast from 'react-hot-toast';
 import { Transition } from 'react-transition-group';
 import * as Yup from 'yup';
+import { editUserPassword } from '../../../../apis/api';
 
 const UpdatePasswordTab = ({ open, onClose }) => {
     const localUser = JSON.parse(localStorage.getItem('user'));
@@ -16,34 +18,22 @@ const UpdatePasswordTab = ({ open, onClose }) => {
     })
     const handleSubmit = async (props) => {
         console.log(props)
-        // editUserPassword(localUser._id, props).then((res) => {
-        //     if (res.data.success === true) {
-        //         addToast(res.data.message, {
-        //             appearance: "success",
-        //             autoDismiss: "true",
-        //         });
-        //         onClose()
-        //     }
-        //     else {
-        //         addToast(res.data.message, {
-        //             appearance: "error",
-        //             autoDismiss: "true",
-        //         });
-        //     }
-        // }).catch(err => {
-        //     if (err.response && err.response.status === 403) {
-        //         addToast(err.response.data.message, {
-        //             appearance: "error",
-        //             autoDismiss: "true",
-        //         });
-        //     } else {
-        //         addToast('Something went wrong', {
-        //             appearance: "error",
-        //             autoDismiss: "true",
-        //         });
-        //         console.log(err.message);
-        //     }
-        // })
+        editUserPassword(localUser._id, props).then((res) => {
+            if (res.data.success === true) {
+                toast.success(res.data.message)
+                onClose()
+            }
+            else {
+                toast.error(res.data.message)
+            }
+        }).catch(err => {
+            if (err.response && err.response.status === 403) {
+                toast.error(err.response.data.message)
+            } else {
+                toast.error(err.response.data.message)
+                console.log(err.message);
+            }
+        })
     }
     return (
         <React.Fragment>

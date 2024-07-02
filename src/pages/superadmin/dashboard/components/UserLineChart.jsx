@@ -1,6 +1,8 @@
 import moment from 'moment';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import toast from 'react-hot-toast';
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { getUserDataForGraphApi } from '../../../../apis/api';
 import Loader from '../../../../components/Loader';
 
 const UserLineChart = () => {
@@ -8,25 +10,20 @@ const UserLineChart = () => {
     const [loading, setLoading] = useState(false);
     const [year] = useState(moment().format('YYYY'))
 
-    // useEffect(() => {
-    //     const fetchData = async () => {
-    //         try {
-    //             const broadcastResponse = await getTotalBroadcastGraphData();
-    //             const smsBroadcastResponse = await getTotalSmsBroadcastGraphData();
-    //             setuserData(broadcastResponse.data.counts);
-    //             setSmsuserData(smsBroadcastResponse.data.counts);
-    //             setLoading(false)
-    //         } catch (error) {
-    //             console.error("Error fetching data:", error);
-    //             addToast('Error fetching broadcast and sms broadcast data', {
-    //                 appearance: 'info',
-    //                 autoDismiss: true
-    //             });
-    //             setLoading(false);
-    //         }
-    //     };
-    //     fetchData();
-    // }, []);
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const userResponse = await getUserDataForGraphApi();
+                setUserData(userResponse.data.counts);
+                setLoading(false)
+            } catch (error) {
+                console.error("Error fetching data:", error);
+                toast.error('Error fetching user data for graph');
+                setLoading(false);
+            }
+        };
+        fetchData();
+    }, []);
 
     const CustomTooltip = ({ active, payload, label }) => {
         if (active && payload && payload.length) {

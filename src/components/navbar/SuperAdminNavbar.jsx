@@ -3,6 +3,7 @@ import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
 import { Clock, Notification } from 'iconsax-react'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import handleLogout from '../Logout'
 
 const navigation = [
     { name: 'Users', href: '/superadmin/userlist', current: false },
@@ -27,7 +28,7 @@ export default function SuperAdminNavbar() {
                     <div className="mx-auto px-2 sm:px-6 lg:px-8 shadow-md">
                         <div className="relative flex h-16 items-center justify-between max-w-[1340px] mx-auto">
                             <div className="absolute inset-y-0 left-0 flex items-center sm:hidden">
-                                <DisclosureButton className="relative inline-flex items-center justify-center rounded-md p-2 text-neutral-700 hover:bg-neutral-100 hover:text-white">
+                                <DisclosureButton className="relative inline-flex items-center justify-center rounded-md p-2 text-neutral-700">
                                     <span className="absolute -inset-0.5" />
                                     <span className="sr-only">Open main menu</span>
                                     {open ? (
@@ -140,8 +141,8 @@ export default function SuperAdminNavbar() {
                                         <MenuItem>
                                             {({ focus }) => (
                                                 <a
-                                                    href="#"
-                                                    className={classNames(focus ? 'bg-gray-100' : '', 'block px-4 py-2 text-sm text-gray-700')}
+                                                    onClick={handleLogout}
+                                                    className={classNames(focus ? 'bg-gray-100' : '', 'block px-4 py-2 text-sm text-gray-700 cursor-pointer')}
                                                 >
                                                     Sign out
                                                 </a>
@@ -161,7 +162,7 @@ export default function SuperAdminNavbar() {
                                     as="a"
                                     href={item.href}
                                     className={classNames(
-                                        item.current ? 'bg-gray-900 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white',
+                                        item.current ? 'text-neutral-800' : 'text-neutral-700',
                                         'block rounded-md px-3 py-2 text-base font-medium',
                                     )}
                                     aria-current={item.current ? 'page' : undefined}

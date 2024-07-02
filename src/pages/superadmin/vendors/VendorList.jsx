@@ -4,14 +4,10 @@ import React, { useEffect, useState } from 'react';
 import VendorTable from './components/VendorTable';
 
 const VendorList = () => {
-    const [selectedDate, setSelectedDate] = useState(null);
+    const [selectedDate, setSelectedDate] = useState(moment().subtract(31, 'days').format('YYYY-MM-DD'));
     const [selectedStartDate, setSelectedStartDate] = useState(moment().add(1, 'days').format('YYYY-MM-DD'));
     const [searchQuery, setSearchQuery] = useState(undefined);
-
-    useEffect(() => {
-        const defaultDate = moment().subtract(31, 'days').format('YYYY-MM-DD');
-        setSelectedDate(defaultDate);
-    }, []);
+    const [searchInput, setSearchInput] = useState('');
 
     const handleDateChange = (event) => {
         setSelectedDate(event.target.value);
@@ -26,14 +22,25 @@ const VendorList = () => {
         const endMonth = moment(selectedStartDate).format('MMMM');
         return `${startMonth} to ${endMonth}`;
     };
+
+    const handleSearch = (e) => {
+        e.preventDefault()
+        setSearchQuery(searchInput)
+    }
+
+    useEffect(() => {
+        if (searchInput === '') {
+            setSearchQuery(undefined)
+        }
+    }, [searchInput])
     return (
         <main className='flex flex-col gap-8 md:px-10 md:pb-10 pb-0 px-4 pt-6 max-w-[1440px] mx-auto'>
             <div className="w-full flex flex-col gap-4">
                 <div className="w-full flex justify-between items-center gap-5 flex-wrap py-4">
                     <p className='text-2xl'>Showing Vendor Reports from {getSelectedMonthRange()}</p>
                     <div className="md:w-auto w-full md:flex md:flex-row flex flex-col justify-end items-center gap-2 md:mb-0 mb-5">
-                        <form className="w-full h-full bg-neutral-50 px-2 py-2 border rounded-lg border-neutral-300 outline-none flex items-center">
-                            <input type="text" placeholder='Search...' value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className='bg-transparent outline-none flex-1' />
+                        <form onSubmit={handleSearch} className="w-full h-full bg-neutral-50 px-2 py-2 border rounded-lg border-neutral-300 outline-none flex items-center">
+                            <input type="text" placeholder='Search...' value={searchInput} onChange={(e) => setSearchInput(e.target.value)} className='bg-transparent outline-none flex-1' />
                             <button type='submit'>
                                 <SearchNormal1 size={18} />
                             </button>
@@ -45,7 +52,7 @@ const VendorList = () => {
                         </div>
                     </div>
                 </div>
-                <VendorTable />
+                <VendorTable searchQuery={searchQuery} startDate={selectedDate} endDate={selectedStartDate} />
             </div>
         </main>
     )

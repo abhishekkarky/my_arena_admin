@@ -1,11 +1,30 @@
 import { Trash } from 'iconsax-react';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import ReactPaginate from 'react-paginate';
 import { Link } from 'react-router-dom';
 import Swal from 'sweetalert2';
+import { getAllFutsalForSuperAdmin } from '../../../../apis/api';
 
-const FutsalTable = () => {
+const FutsalTable = ({ searchQuery, startDate, endDate }) => {
     const [isLoading, setIsLoading] = useState(false);
+    const [futsals, setFutsals] = useState([]);
+    const [totalFutsalCount, setTotalFutsalCount] = useState(0);
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 20;
+
+    const fetchFutsal = async () => {
+        setIsLoading(true);
+        const response = await getAllFutsalForSuperAdmin(currentPage, itemsPerPage, searchQuery, startDate, endDate);
+        if (response.data.success) {
+            setFutsals(response.data.futsals);
+            setTotalFutsalCount(response.data.totalCount);
+        }
+        setIsLoading(false);
+    }
+
+    useEffect(() => {
+        fetchFutsal();
+    }, [currentPage, itemsPerPage, searchQuery, startDate, endDate])
 
     function handleDelete() {
         Swal.fire({
@@ -27,6 +46,11 @@ const FutsalTable = () => {
                 })
             }
         })
+    }
+
+    const handlePageClick = (data) => {
+        const selectedPage = data.selected + 1;
+        setCurrentPage(selectedPage);
     }
 
     return (
@@ -67,62 +91,54 @@ const FutsalTable = () => {
                                     </td>
                                 </tr> :
                                 <>
-                                    {/* {subscriber && subscriber.length > 0 ? subscriber.map((subscriber, index) => ( */}
-                                    <tr class="border-b hover:bg-white">
-                                        <th scope="row" class="px-6 py-4 font-medium text-gray-700 whitespace-nowrap">
-                                            <img src='' className='h-[70px] w-[120px] rounded-lg text-white text-center outline-none border-none' />
-                                        </th>
-                                        <td class="px-6 py-4">
-                                            <div className="flex flex-col gap-1">
-                                                <Link className='hover:text-green-600'>Gokarna Futsal</Link>
-                                                {/* <Link to={`/subscriber-detail/${subscriber._id}`} className='flex text-base hover:text-primary'>{subscriber.fullName}</Link>
-                                                    <p>{subscriber.email}</p> */}
-                                            </div>
-                                        </td>
-                                        <td class="px-6 py-4">
-                                            Gokarna
-                                            {/* {moment(subscriber.createdAt).format('MMM Do, YYYY, h:mm A')} */}
-                                        </td>
-                                        <td class="px-6 py-4">
-                                            <Link className='hover:text-green-600'>Abhishek karki</Link>
-                                            {/* {moment(subscriber.createdAt).format('MMM Do, YYYY, h:mm A')} */}
-                                        </td>
-                                        <td class="px-6 py-4 overflow-auto">
-                                            10-11
-                                            {/* {subscriber.broadcasts.length} */}
-                                        </td>
-                                        <td class="px-6 py-4">
-                                            Rs. 1000
-                                            {/* {subscriber.broadcasts.length} */}
-                                        </td>
-                                        <td class="px-6 py-4">
-                                            <div className="flex items-center gap-2">
-                                                <button onClick={handleDelete} className='text-neutral-700 hover:text-red-500'>
-                                                    <Trash size={22} />
-                                                </button>
-                                            </div>
-                                            {/* {subscriber.inGroup.length} */}
-                                        </td>
-                                    </tr>
-                                    {/* )) :
-                                        <tr className='w-full border-b dark:border-neutral-700'>
-                                            <td colSpan="7" className='border-l border-b py-5'>
-                                                <div className='px-5 text-xl font-medium text-red-500'>No Data Found</div>
-                                            </td>
-                                        </tr>
-                                    } */}
+                                    {
+                                        futsals && futsals.length > 0 ? futsals.map((futsal, index) => (
+                                            <tr class="border-b hover:bg-white">
+                                                <th scope="row" class="px-6 py-4 font-medium text-gray-700 whitespace-nowrap">
+                                                    <img src={futsal?.futsalImageUrl} className='h-[70px] w-[120px] rounded-lg text-white text-center outline-none border-none' />
+                                                </th>
+                                                <td class="px-6 py-4">
+                                                    <div className="flex flex-col gap-1">
+                                                        <Link className='hover:text-green-600'>{futsal?.name}</Link>
+                                                    </div>
+                                                </td>
+                                                <td class="px-6 py-4">
+                                                    {futsal?.location}
+                                                </td>
+                                                <td class="px-6 py-4">
+                                                    <Link className='hover:text-green-600'>{futsal?.addedBy?.fullName}</Link>
+                                                </td>
+                                                <td class="px-6 py-4 overflow-auto">
+                                                    { }
+                                                </td>
+                                                <td class="px-6 py-4">
+                                                    {futsal?.price}
+                                                </td>
+                                                <td class="px-6 py-4">
+                                                    <div className="flex items-center gap-2">
+                                                        <button onClick={handleDelete} className='text-neutral-700 hover:text-red-500'>
+                                                            <Trash size={22} />
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        )) :
+                                            <tr className='w-full border-b dark:border-neutral-700'>
+                                                <td colSpan="7" className='border-l border-b py-5'>
+                                                    <div className='px-5 text-xl font-medium text-red-500'>No Data Found</div>
+                                                </td>
+                                            </tr>
+                                    }
                                 </>
                         }
                     </tbody>
                 </table>
-                {/* {
-                    subscriber && subscriber.length > 0 ? */}
                 <ReactPaginate
                     className="flex items-center border rounded-lg text-neutral-700 my-2 p-auto w-max"
-                    pageCount={2}
+                    pageCount={Math.ceil(totalFutsalCount / itemsPerPage)}
                     pageRangeDisplayed={2}
                     marginPagesDisplayed={2}
-                    // onPageChange={handlePageClick}
+                    onPageChange={handlePageClick}
                     containerClassName={'pagination flex'}
                     previousLabel={<span className="flex items-center justify-center text-neutral-700 px-2 py-1">Previous</span>}
                     nextLabel={<span className="flex items-center justify-center text-neutral-700 px-2 py-1">Next</span>}
@@ -136,9 +152,6 @@ const FutsalTable = () => {
                     breakLinkClassName="flex items-center justify-center px-2 py-1"
                     activeLinkClassName="text-primary"
                 />
-                {/* :
-                        null
-                } */}
             </div>
         </>
     )

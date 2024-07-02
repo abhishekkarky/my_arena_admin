@@ -1,11 +1,26 @@
-import { Forbidden, Trash } from 'iconsax-react';
-import React, { useState } from 'react';
+import { Trash } from 'iconsax-react';
+import React, { useEffect, useState } from 'react';
 import ReactPaginate from 'react-paginate';
 import Swal from 'sweetalert2';
-import getRandomColorFromList from '../../../../components/RandomColor';
+import { getAllPaymentLogsForAdmin } from '../../../../apis/api';
 
-const PaymentTable = () => {
+const PaymentTable = ({ searchQuery, startDate, endDate }) => {
     const [isLoading, setIsLoading] = useState(false);
+    const [totalPaymentLogs, setTotalPaymentLogs] = useState(0);
+    const [paymentLogs, setPaymentLogs] = useState([]);
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 20;
+
+    useEffect(() => {
+        setIsLoading(true);
+        getAllPaymentLogsForAdmin(currentPage, itemsPerPage, searchQuery, startDate, endDate).then((response) => {
+            if (response.data.success === true) {
+                setPaymentLogs(response.data.payments);
+                setTotalPaymentLogs(response.data.totalCount);
+                setIsLoading(false);
+            }
+        })
+    }, [searchQuery, startDate, endDate, currentPage])
 
     function handleDelete() {
         Swal.fire({
@@ -29,6 +44,10 @@ const PaymentTable = () => {
         })
     }
 
+    const handlePageClick = (data) => {
+        currentPage = data.selected + 1;
+        setCurrentPage(currentPage);
+    }
     return (
         <>
             <div class="relative overflow-auto">
@@ -64,58 +83,52 @@ const PaymentTable = () => {
                                     </td>
                                 </tr> :
                                 <>
-                                    {/* {subscriber && subscriber.length > 0 ? subscriber.map((subscriber, index) => ( */}
-                                    <tr class="border-b hover:bg-white">
-                                        <td className='px-6 py-4'>
-                                            pidx
-                                        </td>
-                                        <td class="px-6 py-4">
-                                            <div className="flex flex-col gap-1">
-                                                Abhishek karki
-                                                {/* <Link to={`/subscriber-detail/${subscriber._id}`} className='flex text-base hover:text-primary'>{subscriber.fullName}</Link>
-                                                    <p>{subscriber.email}</p> */}
-                                            </div>
-                                        </td>
-                                        <td class="px-6 py-4">
-                                            Gokarna Futsal
-                                            {/* {moment(subscriber.createdAt).format('MMM Do, YYYY, h:mm A')} */}
-                                        </td>
-                                        <td class="px-6 py-4">
-                                            Abhi the boss
-                                            {/* {moment(subscriber.createdAt).format('MMM Do, YYYY, h:mm A')} */}
-                                        </td>
-                                        <td class="px-6 py-4">
-                                            Rs. 1000
-                                            {/* {subscriber.broadcasts.length} */}
-                                        </td>
-                                        <td class="px-6 py-4">
-                                            <div className="flex items-center gap-2">
-                                                <button onClick={handleDelete} className='text-neutral-700 hover:text-red-500'>
-                                                    <Trash size={22} />
-                                                </button>
-                                            </div>
-                                            {/* {subscriber.inGroup.length} */}
-                                        </td>
-                                    </tr>
-                                    {/* )) :
-                                        <tr className='w-full border-b dark:border-neutral-700'>
-                                            <td colSpan="6" className='border-l border-b py-5'>
-                                                <div className='px-5 text-xl font-medium text-red-500'>No Data Found</div>
-                                            </td>
-                                        </tr>
-                                    } */}
+                                    {
+                                        paymentLogs && paymentLogs.length > 0 ? paymentLogs.map((payment, index) => (
+                                            <tr class="border-b hover:bg-white">
+                                                <td className='px-6 py-4'>
+                                                    {payment.pidx}
+                                                </td>
+                                                <td class="px-6 py-4">
+                                                    <div className="flex flex-col gap-1">
+                                                        {payment.by.fullName}
+                                                        {payment.by.number}
+                                                    </div>
+                                                </td>
+                                                <td class="px-6 py-4">
+                                                    {payment.futsal.name}
+                                                </td>
+                                                <td class="px-6 py-4">
+                                                    {payment.vendor.fullName}
+                                                </td>
+                                                <td class="px-6 py-4">
+                                                    Rs. {payment.amount}
+                                                </td>
+                                                <td class="px-6 py-4">
+                                                    <div className="flex items-center gap-2">
+                                                        <button onClick={handleDelete} className='text-neutral-700 hover:text-red-500'>
+                                                            <Trash size={22} />
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        )) :
+                                            <tr className='w-full border-b dark:border-neutral-700'>
+                                                <td colSpan="6" className='border-l border-b py-5'>
+                                                    <div className='px-5 text-xl font-medium text-red-500'>No Data Found</div>
+                                                </td>
+                                            </tr>
+                                    }
                                 </>
                         }
                     </tbody>
                 </table>
-                {/* {
-                    subscriber && subscriber.length > 0 ? */}
                 <ReactPaginate
                     className="flex items-center border rounded-lg text-neutral-700 my-2 p-auto w-max"
-                    pageCount={2}
+                    pageCount={Math.ceil(totalPaymentLogs / itemsPerPage)}
                     pageRangeDisplayed={2}
                     marginPagesDisplayed={2}
-                    // onPageChange={handlePageClick}
+                    onPageChange={handlePageClick}
                     containerClassName={'pagination flex'}
                     previousLabel={<span className="flex items-center justify-center text-neutral-700 px-2 py-1">Previous</span>}
                     nextLabel={<span className="flex items-center justify-center text-neutral-700 px-2 py-1">Next</span>}
@@ -129,9 +142,6 @@ const PaymentTable = () => {
                     breakLinkClassName="flex items-center justify-center px-2 py-1"
                     activeLinkClassName="text-primary"
                 />
-                {/* :
-                        null
-                } */}
             </div>
         </>
     )
