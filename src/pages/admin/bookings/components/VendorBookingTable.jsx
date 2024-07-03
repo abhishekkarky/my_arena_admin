@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import { deleteBookingbyId, getAllBookingsApi } from '../../../../apis/api';
 import EditBookingModal from './EditBookingModal';
+import moment from 'moment';
 
 const VendorBookingTable = ({ searchQuery, selectedDate, selectedStartDate, isUpdated, setIsUpdated }) => {
     const [isLoading, setIsLoading] = useState(true);
@@ -101,6 +102,9 @@ const VendorBookingTable = ({ searchQuery, selectedDate, selectedStartDate, isUp
                                 Futsal Location
                             </th>
                             <th scope="col" class="px-6 py-3">
+                                Booking Date
+                            </th>
+                            <th scope="col" class="px-6 py-3">
                                 Booking Time
                             </th>
                             <th scope="col" class="px-6 py-3">
@@ -118,7 +122,7 @@ const VendorBookingTable = ({ searchQuery, selectedDate, selectedStartDate, isUp
                         {
                             isLoading ?
                                 <tr>
-                                    <td colSpan="7" className='border-l border-b py-5'>
+                                    <td colSpan="8" className='border-l border-b py-5'>
                                         <div className='px-5 text-xl font-medium text-red-500'>Loading...</div>
                                     </td>
                                 </tr> :
@@ -143,20 +147,18 @@ const VendorBookingTable = ({ searchQuery, selectedDate, selectedStartDate, isUp
                                                     <td class="px-6 py-4">
                                                         {booking.futsal.location}
                                                     </td>
+                                                    <td class="px-6 py-4">
+                                                        {moment(booking?.date).format('MMMM Do, YYYY (dddd)')}
+                                                    </td>
                                                     <td class="px-6 py-4 overflow-auto">
-                                                        {booking.timeSlot.map((time, index) => (
-                                                            <span key={index}>
-                                                                {time.startTime} - {time.endTime}
-                                                                {index < booking.timeSlot.length - 1 ? ", " : ""}
-                                                            </span>
-                                                        ))}
+                                                        {booking.timeSlot}
                                                     </td>
                                                     <td class="px-6 py-4">
                                                         {booking.futsal.price}
                                                     </td>
                                                     <td class="px-6 py-4">
                                                         {
-                                                            booking.isPaid ? 'Yes' : 'No'
+                                                            booking.paid ? 'Yes' : 'No'
                                                         }
                                                     </td>
                                                     <td class="px-6 py-4">
@@ -172,7 +174,7 @@ const VendorBookingTable = ({ searchQuery, selectedDate, selectedStartDate, isUp
                                                 </tr>
                                             )) :
                                             <tr className='w-full border-b dark:border-neutral-700'>
-                                                <td colSpan="7" className='border-l border-b py-5'>
+                                                <td colSpan="8" className='border-l border-b py-5'>
                                                     <div className='px-5 text-xl font-medium text-red-500'>No Data Found</div>
                                                 </td>
                                             </tr>

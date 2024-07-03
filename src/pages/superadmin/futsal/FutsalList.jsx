@@ -8,6 +8,7 @@ const FutsalList = () => {
     const [selectedStartDate, setSelectedStartDate] = useState(moment().add(1, 'days').format('YYYY-MM-DD'));
     const [searchQuery, setSearchQuery] = useState(undefined);
     const [searchInput, setSearchInput] = useState('');
+    const [isUpdated, setIsUpdated] = useState(false);
 
     const handleDateChange = (event) => {
         setSelectedDate(event.target.value);
@@ -52,7 +53,7 @@ const FutsalList = () => {
                         </div>
                     </div>
                 </div>
-                <FutsalTable searchQuery={searchQuery} startDate={selectedStartDate} endDate={selectedDate}  />
+                <FutsalTable searchQuery={searchQuery} startDate={selectedStartDate} endDate={selectedDate} isUpdated={isUpdated} setIsUpdated={setIsUpdated}  />
             </div>
         </main>
     )

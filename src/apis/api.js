@@ -176,6 +176,10 @@ export const getAllFutsalForSuperAdmin = (
 export const getFutsalCountAndGrowthForAdminApi = () =>
   Api.get("/api/superadmin/futsal/countAndGrowth", config);
 
+// delete futsal by if for admin
+export const deleteFutsalByIdForAdminApi = (id) =>
+  Api.delete(`/api/superadmin/futsal/delete/${id}`, config);
+
 // get all user data for admin
 export const getAllUsersApi = (page, limit, searchQuery, startDate, endDate) =>
   Api.get(
@@ -220,6 +224,10 @@ export const getVendorDataForGraphApi = () =>
 export const getVendorCountAndGrowthApi = () =>
   Api.get("/api/superadmin/vendor/countAndGrowth", config);
 
+// change block status of user and vendor for admin
+export const changeBlockUnblockStatusApi = (id) =>
+  Api.get(`/api/superadmin/vendor/blockUnblock/${id}`, config);
+
 // get all payment logs for admin
 export const getAllPaymentLogsForAdmin = (
   page,
@@ -239,12 +247,12 @@ export const getRevenueTotalsForAdminApi = () =>
 
 // get booking data for graph for admin
 export const getBookingDataForGraphForAdminApi = () =>
-  Api.get("/api/superadmin/booking/countForGraph", config)
+  Api.get("/api/superadmin/booking/countForGraph", config);
 
 // get booking count and growth for admin
 export const getBookingCountAndGrowthForAdminApi = () =>
-  Api.get("/api/superadmin/booking/countAndGrowth", config)
+  Api.get("/api/superadmin/booking/countAndGrowth", config);
 
 // get notification count and growth for admin
 export const getNotificationCountAndGrowthForAdminApi = () =>
-  Api.get("/api/superadmin/notification/countAndGrowth", config)
+  Api.get("/api/superadmin/notification/countAndGrowth", config);

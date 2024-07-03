@@ -83,6 +83,14 @@ const VendorFutsalTable = ({ searchQuery, isUpdated, setIsUpdated }) => {
         setCurrentPage(data.selected + 1);
     }
 
+    const handleImageClick = (imageUrl) => {
+        Swal.fire({
+            imageUrl: imageUrl,
+            imageAlt: 'Futsal Image',
+            showConfirmButton: false,
+        });
+    }
+
     return (
         <>
             <div class="relative overflow-auto">
@@ -99,7 +107,7 @@ const VendorFutsalTable = ({ searchQuery, isUpdated, setIsUpdated }) => {
                                 Futsal Location
                             </th>
                             <th scope="col" class="px-6 py-3">
-                                Available Time
+                                Opening Days
                             </th>
                             <th scope="col" class="px-6 py-3">
                                 Price per hour
@@ -116,7 +124,7 @@ const VendorFutsalTable = ({ searchQuery, isUpdated, setIsUpdated }) => {
                         {
                             isLoading ?
                                 <tr>
-                                    <td colSpan="6" className='border-l border-b py-5'>
+                                    <td colSpan="7" className='border-l border-b py-5'>
                                         <div className='px-5 text-xl font-medium text-red-500'>Loading...</div>
                                     </td>
                                 </tr> :
@@ -124,7 +132,7 @@ const VendorFutsalTable = ({ searchQuery, isUpdated, setIsUpdated }) => {
                                     {futsals && futsals.length > 0 ? futsals.map((futsal, index) => (
                                         <tr class="border-b hover:bg-white">
                                             <th scope="row" class="px-6 py-4 font-medium text-gray-700 whitespace-nowrap">
-                                                <img src={futsal.futsalImageUrl} className='h-[70px] w-[120px] rounded-lg text-white text-center outline-none border-none' />
+                                                <img onClick={() => handleImageClick(futsal?.futsalImageUrl)} src={futsal.futsalImageUrl} className='h-[70px] w-[120px] rounded-lg text-white text-center outline-none border-none' />
                                             </th>
                                             <td class="px-6 py-4">
                                                 <div className="flex flex-col gap-1">
@@ -135,18 +143,8 @@ const VendorFutsalTable = ({ searchQuery, isUpdated, setIsUpdated }) => {
                                                 {futsal.location}
                                             </td>
                                             <td className="px-6 py-4 overflow-auto max-w-[200px]">
-                                                {futsal.timeSlots && futsal.timeSlots.length > 0 ? (
-                                                    futsal.timeSlots.map((slot, index) => (
-                                                        <span key={index}>
-                                                            {slot.startTime}-{slot.endTime}
-                                                            {index < futsal.timeSlots.length - 1 ? ', ' : ''}
-                                                        </span>
-                                                    ))
-                                                ) : (
-                                                    <p>No Time Slots Available</p>
-                                                )}
+                                                {futsal.dayOfWeek}
                                             </td>
-
                                             <td class="px-6 py-4">
                                                 Rs. {futsal.price}
                                             </td>
@@ -162,12 +160,11 @@ const VendorFutsalTable = ({ searchQuery, isUpdated, setIsUpdated }) => {
                                                         <Trash size={22} />
                                                     </button>
                                                 </div>
-                                                {/* {subscriber.inGroup.length} */}
                                             </td>
                                         </tr>
                                     )) :
                                         <tr className='w-full border-b dark:border-neutral-700'>
-                                            <td colSpan="6" className='border-l border-b py-5'>
+                                            <td colSpan="7" className='border-l border-b py-5'>
                                                 <div className='px-5 text-xl font-medium text-red-500'>No Data Found</div>
                                             </td>
                                         </tr>

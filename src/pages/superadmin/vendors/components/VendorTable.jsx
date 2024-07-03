@@ -3,10 +3,10 @@ import moment from 'moment';
 import React, { useEffect, useState } from 'react';
 import ReactPaginate from 'react-paginate';
 import Swal from 'sweetalert2';
-import { getAllVendorsApi } from '../../../../apis/api';
+import { changeBlockUnblockStatusApi, getAllVendorsApi } from '../../../../apis/api';
 import getRandomColorFromList from '../../../../components/RandomColor';
 
-const VendorTable = ({ searchQuery, startDate, endDate }) => {
+const VendorTable = ({ searchQuery, startDate, endDate, isUpdated, setIsUpdated }) => {
     const [isLoading, setIsLoading] = useState(false);
     const [vendors, setVendors] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
@@ -21,7 +21,7 @@ const VendorTable = ({ searchQuery, startDate, endDate }) => {
                 setIsLoading(false);
             }
         })
-    }, [currentPage, searchQuery, startDate, endDate])
+    }, [currentPage, searchQuery, startDate, endDate, isUpdated])
 
     function handleDelete() {
         Swal.fire({
@@ -45,24 +45,46 @@ const VendorTable = ({ searchQuery, startDate, endDate }) => {
         })
     }
 
-    function handleBlockStatus() {
+    function handleBlockStatus(id, name) {
         Swal.fire({
-            title: 'Are you sure you want to change block status for this vendor?',
+            title: `Are you sure you want to change block status for this ${name}?`,
             text: "You won't be able to revert this!",
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#3085d6',
             cancelButtonColor: '#d33',
             confirmButtonText: 'Yes, confirm!'
-        }).then((result) => {
+        }).then(async (result) => {
             if (result.isConfirmed) {
-                Swal.fire({
-                    title: 'Status Changed!',
-                    text: 'Vendor block status has been changed.',
-                    icon: 'success',
-                    showConfirmButton: false,
-                    timer: 1500
-                })
+                try {
+                    const response = await changeBlockUnblockStatusApi(id);
+                    if (response.data.success) {
+                        Swal.fire({
+                            title: 'Status Changed!',
+                            text: response.data.message,
+                            icon: 'success',
+                            showConfirmButton: false,
+                            timer: 1500
+                        });
+                        setIsUpdated((v) => !v);
+                    } else {
+                        Swal.fire({
+                            title: 'Error!',
+                            text: 'Couldnot change status.',
+                            icon: 'error',
+                            showConfirmButton: false,
+                            timer: 1500
+                        });
+                    }
+                } catch (error) {
+                    Swal.fire({
+                        title: 'Error!',
+                        text: 'An error occurred while changing block status.',
+                        icon: 'error',
+                        showConfirmButton: false,
+                        timer: 1500
+                    });
+                }
             }
         })
     }
@@ -130,7 +152,7 @@ const VendorTable = ({ searchQuery, startDate, endDate }) => {
                                                 </td>
                                                 <td class="px-6 py-4">
                                                     <div className="flex items-center gap-2">
-                                                        <button onClick={handleBlockStatus} className='text-neutral-700 hover:text-red-500'>
+                                                        <button onClick={() => handleBlockStatus(vendor._id, vendor.fullName)} className='text-neutral-700 hover:text-red-500'>
                                                             <Forbidden size={20} />
                                                         </button>
                                                         <button onClick={handleDelete} className='text-neutral-700 hover:text-red-500'>

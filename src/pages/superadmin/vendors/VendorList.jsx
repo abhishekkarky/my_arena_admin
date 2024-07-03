@@ -8,6 +8,7 @@ const VendorList = () => {
     const [selectedStartDate, setSelectedStartDate] = useState(moment().add(1, 'days').format('YYYY-MM-DD'));
     const [searchQuery, setSearchQuery] = useState(undefined);
     const [searchInput, setSearchInput] = useState('');
+    const [isUpdated, setIsUpdated] = useState(false);
 
     const handleDateChange = (event) => {
         setSelectedDate(event.target.value);
@@ -52,7 +53,7 @@ const VendorList = () => {
                         </div>
                     </div>
                 </div>
-                <VendorTable searchQuery={searchQuery} startDate={selectedDate} endDate={selectedStartDate} />
+                <VendorTable searchQuery={searchQuery} startDate={selectedDate} endDate={selectedStartDate} isUpdated={isUpdated} setIsUpdated={setIsUpdated} />
             </div>
         </main>
     )

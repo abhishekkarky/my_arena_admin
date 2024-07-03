@@ -7,12 +7,23 @@ import toast from 'react-hot-toast';
 import { Transition } from 'react-transition-group';
 import * as Yup from 'yup';
 import { addFutsalApi } from '../../../../apis/api';
+import Select from 'react-select';
 
 const AddFutsalModal = ({ open, onClose, setIsUpdated }) => {
     const localUser = JSON.parse(localStorage.getItem('user'));
     const [futsalImage, setFutsalImage] = useState(null);
     const [previewFutsalImage, setPreviewFutsalImage] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
+
+    const weeks = [
+        { value: 'Sunday', label: 'Sunday' },
+        { value: 'Monday', label: 'Monday' },
+        { value: 'Tuesday', label: 'Tuesday' },
+        { value: 'Wednesday', label: 'Wednesday' },
+        { value: 'Thursday', label: 'Thursday' },
+        { value: 'Friday', label: 'Friday' },
+        { value: 'Saturday', label: 'Saturday' }
+    ]
 
     const addFutsalValidation = Yup.object().shape({
         name: Yup.string().required('Futsal name is required'),
@@ -208,8 +219,14 @@ const AddFutsalModal = ({ open, onClose, setIsUpdated }) => {
                                             </div>
                                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                                 <div className="flex flex-col gap-3">
-                                                    <label className='text-md'>Open in week ( 1 is Sunday )</label>
-                                                    <Field className='border rounded-md p-3 outline-none' type='text' placeholder="6" value={props.values.dayOfWeek} onChange={props.handleChange("dayOfWeek")} />
+                                                    <label className='text-md'>Open in week</label>
+                                                    <Select
+                                                        options={weeks}
+                                                        isMulti
+                                                        onChange={(selectedOptions) =>
+                                                            props.setFieldValue('dayOfWeek', selectedOptions.map(option => option.value).join(', '))
+                                                        }
+                                                    />
                                                     {props.errors.dayOfWeek ??
                                                         props.touched.dayOfWeek ? (
                                                         <p className='text-[12px]' style={{ color: "#dc3545" }}>
@@ -233,24 +250,6 @@ const AddFutsalModal = ({ open, onClose, setIsUpdated }) => {
                                             {previewFutsalImage && (
                                                 <img src={previewFutsalImage} alt="futsalImage" className="w-full h-[200px] object-cover rounded-md mt-5" />
                                             )}
-
-                                            {/* <Field className='border rounded-md p-3 outline-none' type="password" placeholder='********' value={props.values.newPassword} onChange={props.handleChange("newPassword")} />
-                                            {props.errors.newPassword
-                                                ?? props.touched.newPassword ? (
-                                                <p className='text-[12px]' style={{ color: "#dc3545" }}>
-                                                    {props.errors.newPassword}
-                                                </p>
-                                            ) : null
-                                            }
-                                            <label className='text-md'>Confirm Password</label>
-                                            <Field className='border rounded-md p-3 outline-none' type="password" placeholder='********' value={props.values.confirmPassword} onChange={props.handleChange("confirmPassword")} />
-                                            {props.errors.confirmPassword
-                                                ?? props.touched.confirmPassword ? (
-                                                <p className='text-[12px]' style={{ color: "#dc3545" }}>
-                                                    {props.errors.confirmPassword}
-                                                </p>
-                                            ) : null
-                                            } */}
                                             <button className='text-md w-[150px] h-[40px] bg-black rounded-md text-white mt-5' type="submit">{isLoading ? 'Adding...' : 'Add'} Futsal</button>
                                         </Form>
                                     )}

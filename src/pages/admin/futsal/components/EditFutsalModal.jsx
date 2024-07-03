@@ -4,6 +4,7 @@ import ModalDialog from '@mui/joy/ModalDialog';
 import { Field, Form, Formik } from 'formik';
 import React, { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
+import Select from 'react-select';
 import { Transition } from 'react-transition-group';
 import * as Yup from 'yup';
 import { getFutsalByIdApi, updateFutsalApi } from '../../../../apis/api';
@@ -35,6 +36,16 @@ const EditFutsalModal = ({ open, onClose, futsalId, setIsUpdated }) => {
         endTime: Yup.string().required('Futsal end time is required'),
         dayOfWeek: Yup.string().required('Futsal day of week is required'),
     })
+
+    const weeks = [
+        { value: 'Sunday', label: 'Sunday' },
+        { value: 'Monday', label: 'Monday' },
+        { value: 'Tuesday', label: 'Tuesday' },
+        { value: 'Wednesday', label: 'Wednesday' },
+        { value: 'Thursday', label: 'Thursday' },
+        { value: 'Friday', label: 'Friday' },
+        { value: 'Saturday', label: 'Saturday' }
+    ]
 
     useEffect(() => {
         if (futsalId) {
@@ -83,7 +94,7 @@ const EditFutsalModal = ({ open, onClose, futsalId, setIsUpdated }) => {
                 onClose();
                 setFutsalImage(null);
                 setPreviewFutsalImage(null);
-                setIsUpdated(true)
+                setIsUpdated((v) => !v)
             } else {
                 toast.error(res.data.message);
             }
@@ -243,8 +254,14 @@ const EditFutsalModal = ({ open, onClose, futsalId, setIsUpdated }) => {
                                             </div>
                                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                                 <div className="flex flex-col gap-3">
-                                                    <label className='text-md'>Open in week ( 1 is Sunday )</label>
-                                                    <Field className='border rounded-md p-3 outline-none' type='text' placeholder="6" value={props.values.dayOfWeek} onChange={props.handleChange("dayOfWeek")} />
+                                                    <label className='text-md'>Open in week</label>
+                                                    <Select
+                                                        options={weeks}
+                                                        isMulti
+                                                        onChange={(selectedOptions) =>
+                                                            props.setFieldValue('dayOfWeek', selectedOptions.map(option => option.value).join(', '))
+                                                        }
+                                                    />
                                                     {props.errors.dayOfWeek ??
                                                         props.touched.dayOfWeek ? (
                                                         <p className='text-[12px]' style={{ color: "#dc3545" }}>

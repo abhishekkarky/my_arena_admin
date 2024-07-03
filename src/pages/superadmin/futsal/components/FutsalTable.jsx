@@ -3,9 +3,9 @@ import React, { useEffect, useState } from 'react';
 import ReactPaginate from 'react-paginate';
 import { Link } from 'react-router-dom';
 import Swal from 'sweetalert2';
-import { getAllFutsalForSuperAdmin } from '../../../../apis/api';
+import { deleteFutsalByIdForAdminApi, getAllFutsalForSuperAdmin } from '../../../../apis/api';
 
-const FutsalTable = ({ searchQuery, startDate, endDate }) => {
+const FutsalTable = ({ searchQuery, startDate, endDate, isUpdated, setIsUpdated }) => {
     const [isLoading, setIsLoading] = useState(false);
     const [futsals, setFutsals] = useState([]);
     const [totalFutsalCount, setTotalFutsalCount] = useState(0);
@@ -24,26 +24,48 @@ const FutsalTable = ({ searchQuery, startDate, endDate }) => {
 
     useEffect(() => {
         fetchFutsal();
-    }, [currentPage, itemsPerPage, searchQuery, startDate, endDate])
+    }, [currentPage, itemsPerPage, searchQuery, startDate, endDate, isUpdated])
 
-    function handleDelete() {
+    function handleDelete(id, name) {
         Swal.fire({
-            title: 'Are you sure you want to delete this futsal?',
+            title: `Are you sure you want to delete ${name}?`,
             text: "You won't be able to revert this!",
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#3085d6',
             cancelButtonColor: '#d33',
             confirmButtonText: 'Yes, delete it!'
-        }).then((result) => {
+        }).then(async (result) => {
             if (result.isConfirmed) {
-                Swal.fire({
-                    title: 'Deleted!',
-                    text: 'Futsal has been deleted.',
-                    icon: 'success',
-                    showConfirmButton: false,
-                    timer: 1500
-                })
+                try {
+                    const response = await deleteFutsalByIdForAdminApi(id);
+                    if (response.data.success) {
+                        Swal.fire({
+                            title: 'Deleted!',
+                            text: 'Futsal has been deleted.',
+                            icon: 'success',
+                            showConfirmButton: false,
+                            timer: 1500
+                        });
+                        setIsUpdated((v) => !v);
+                    } else {
+                        Swal.fire({
+                            title: 'Error!',
+                            text: 'Failed to delete futsal.',
+                            icon: 'error',
+                            showConfirmButton: false,
+                            timer: 1500
+                        });
+                    }
+                } catch (error) {
+                    Swal.fire({
+                        title: 'Error!',
+                        text: 'An error occurred while deleting futsal.',
+                        icon: 'error',
+                        showConfirmButton: false,
+                        timer: 1500
+                    });
+                }
             }
         })
     }
@@ -51,6 +73,14 @@ const FutsalTable = ({ searchQuery, startDate, endDate }) => {
     const handlePageClick = (data) => {
         const selectedPage = data.selected + 1;
         setCurrentPage(selectedPage);
+    }
+
+    const handleImageClick = (imageUrl) => {
+        Swal.fire({
+            imageUrl: imageUrl,
+            imageAlt: 'Futsal Image',
+            showConfirmButton: false,
+        });
     }
 
     return (
@@ -72,7 +102,7 @@ const FutsalTable = ({ searchQuery, startDate, endDate }) => {
                                 Vendor
                             </th>
                             <th scope="col" class="px-6 py-3">
-                                Available Time
+                                Opening Days
                             </th>
                             <th scope="col" class="px-6 py-3">
                                 Price per hour
@@ -95,7 +125,7 @@ const FutsalTable = ({ searchQuery, startDate, endDate }) => {
                                         futsals && futsals.length > 0 ? futsals.map((futsal, index) => (
                                             <tr class="border-b hover:bg-white">
                                                 <th scope="row" class="px-6 py-4 font-medium text-gray-700 whitespace-nowrap">
-                                                    <img src={futsal?.futsalImageUrl} className='h-[70px] w-[120px] rounded-lg text-white text-center outline-none border-none' />
+                                                    <img onClick={() => handleImageClick(futsal?.futsalImageUrl)} src={futsal?.futsalImageUrl} className='cursor-pointer h-[70px] w-[120px] rounded-lg text-white text-center outline-none border-none' />
                                                 </th>
                                                 <td class="px-6 py-4">
                                                     <div className="flex flex-col gap-1">
@@ -109,14 +139,14 @@ const FutsalTable = ({ searchQuery, startDate, endDate }) => {
                                                     <Link className='hover:text-green-600'>{futsal?.addedBy?.fullName}</Link>
                                                 </td>
                                                 <td class="px-6 py-4 overflow-auto">
-                                                    { }
+                                                    {futsal?.dayOfWeek}
                                                 </td>
                                                 <td class="px-6 py-4">
                                                     {futsal?.price}
                                                 </td>
                                                 <td class="px-6 py-4">
                                                     <div className="flex items-center gap-2">
-                                                        <button onClick={handleDelete} className='text-neutral-700 hover:text-red-500'>
+                                                        <button onClick={() => handleDelete(futsal?._id, futsal?.name)} className='text-neutral-700 hover:text-red-500'>
                                                             <Trash size={22} />
                                                         </button>
                                                     </div>

@@ -87,13 +87,12 @@ const PaymentTable = ({ searchQuery, startDate, endDate }) => {
                                         paymentLogs && paymentLogs.length > 0 ? paymentLogs.map((payment, index) => (
                                             <tr class="border-b hover:bg-white">
                                                 <td className='px-6 py-4'>
-                                                    {payment.pidx}
+                                                    {payment.pidx ? payment.pidx : '-'}
                                                 </td>
                                                 <td class="px-6 py-4">
-                                                    <div className="flex flex-col gap-1">
-                                                        {payment.by.fullName}
-                                                        {payment.by.number}
-                                                    </div>
+                                                    {payment?.by?.fullName}
+                                                    <hr className='my-0.5 border-white' />
+                                                    {payment?.by?.number}
                                                 </td>
                                                 <td class="px-6 py-4">
                                                     {payment.futsal.name}

@@ -9,6 +9,7 @@ import { createBookingApi, getAllAvailableTimeSlotsApi, getAllFutsalForBookingAp
 import moment from 'moment';
 
 const AddBookingModal = ({ open, onClose, setIsUpdated }) => {
+    const today = moment().format('YYYY-MM-DD');
     const [futsals, setFutsals] = useState([]);
     const [formData, setFormData] = useState({
         user: '',
@@ -65,7 +66,7 @@ const AddBookingModal = ({ open, onClose, setIsUpdated }) => {
         const bookingData = {
             ...formData,
             date: moment(formData.date),
-            timeSlot: formData.timeSlot.map(slot => slot.value)
+            timeSlot: formData.timeSlot.map(slot => slot.label)
         };
         createBookingApi(bookingData).then(res => {
             if (res.data.success) {
@@ -86,7 +87,13 @@ const AddBookingModal = ({ open, onClose, setIsUpdated }) => {
                 if (res.data.success) {
                     setTimeSlotOptions(res.data.timeSlots.map(slot => ({ label: `${slot.startTime} - ${slot.endTime}`, value: slot._id })));
                 } else {
+                    setTimeSlotOptions([]);
                     toast.error('Failed to fetch time slots');
+                }
+            }).catch(err => {
+                if (err.response && err.response.status === 403) {
+                    toast.error(err.response.data.message);
+                    setTimeSlotOptions([]);
                 }
             });
         }
@@ -144,6 +151,7 @@ const AddBookingModal = ({ open, onClose, setIsUpdated }) => {
                                     <input
                                         type='date'
                                         name="date"
+                                        min={today}
                                         value={formData.date}
                                         onChange={handleChange}
                                         className='border rounded-md p-3 outline-none'
