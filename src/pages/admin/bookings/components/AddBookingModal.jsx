@@ -71,7 +71,7 @@ const AddBookingModal = ({ open, onClose, setIsUpdated }) => {
         createBookingApi(bookingData).then(res => {
             if (res.data.success) {
                 toast.success(res.data.message);
-                setIsUpdated(true);
+                setIsUpdated((v) => !v);
                 onClose();
             }
         }).catch(err => {

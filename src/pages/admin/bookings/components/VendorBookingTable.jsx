@@ -1,16 +1,17 @@
 import { Edit, Trash } from 'iconsax-react';
+import moment from 'moment';
 import React, { useEffect, useState } from 'react';
 import ReactPaginate from 'react-paginate';
 import { Link } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import { deleteBookingbyId, getAllBookingsApi } from '../../../../apis/api';
 import EditBookingModal from './EditBookingModal';
-import moment from 'moment';
 
 const VendorBookingTable = ({ searchQuery, selectedDate, selectedStartDate, isUpdated, setIsUpdated }) => {
     const [isLoading, setIsLoading] = useState(true);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [bookings, setBookings] = useState([]);
+    const [editBookingId, setEditBookingId] = useState(null);
     const [totalBookingCount, setTotalBookingCount] = useState(0);
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 20;
@@ -54,7 +55,7 @@ const VendorBookingTable = ({ searchQuery, selectedDate, selectedStartDate, isUp
                             showConfirmButton: false,
                             timer: 1500
                         });
-                        setIsUpdated(true);
+                        setIsUpdated((v) => !v);
                     } else {
                         Swal.fire({
                             title: 'Error!',
@@ -77,7 +78,8 @@ const VendorBookingTable = ({ searchQuery, selectedDate, selectedStartDate, isUp
         })
     }
 
-    const handleEditModal = () => {
+    const handleEditModal = (bookingId) => {
+        setEditBookingId(bookingId);
         setIsEditModalOpen(!isEditModalOpen);
     }
 
@@ -163,10 +165,10 @@ const VendorBookingTable = ({ searchQuery, selectedDate, selectedStartDate, isUp
                                                     </td>
                                                     <td class="px-6 py-4">
                                                         <div className="flex items-center gap-3">
-                                                            <button onClick={handleEditModal} className='text-neutral-700 hover:text-red-500'>
+                                                            <button onClick={() => handleEditModal(booking._id, booking?.user?.fullName)} className='text-neutral-700 hover:text-red-500'>
                                                                 <Edit size={20} />
                                                             </button>
-                                                            <button onClick={() => handleDelete(booking._id, booking.user.fullName)} className='text-neutral-700 hover:text-red-500'>
+                                                            <button onClick={() => handleDelete(booking._id, booking?.user?.fullName)} className='text-neutral-700 hover:text-red-500'>
                                                                 <Trash size={22} />
                                                             </button>
                                                         </div>
@@ -203,7 +205,7 @@ const VendorBookingTable = ({ searchQuery, selectedDate, selectedStartDate, isUp
                     activeLinkClassName="text-primary"
                 />
             </div>
-            <EditBookingModal open={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} />
+            <EditBookingModal open={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} booking={editBookingId} setIsUpdated={setIsUpdated} />
         </>
     )
 }

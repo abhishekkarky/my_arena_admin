@@ -128,6 +128,15 @@ export const getAllAvailableTimeSlotsApi = (futsalId, date) =>
 export const deleteBookingbyId = (id) =>
   Api.delete(`/api/booking/delete/${id}`, config);
 
+// Get Booking Detail by id
+export const getBookingById = (id) => 
+  Api.get(`/api/booking/get/${id}`, config)
+
+// Update Booking Detail
+export const updateBookingApi = (id, data) =>
+  Api.put(`/api/booking/update/${id}`, data, config)
+
+
 // creating Notification Routes for vendor
 
 // Get Notification Count and Growth for vendor
