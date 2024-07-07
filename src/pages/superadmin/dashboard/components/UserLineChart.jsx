@@ -62,15 +62,15 @@ const UserLineChart = () => {
                             >
                                 <defs>
                                     <linearGradient id="colorUser" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="#4E79A7" stopOpacity={0.8} />
-                                        <stop offset="95%" stopColor="#4E79A7" stopOpacity={0} />
+                                        <stop offset="5%" stopColor="#16A34A" stopOpacity={0.8} />
+                                        <stop offset="95%" stopColor="#16A34A" stopOpacity={0} />
                                     </linearGradient>
                                 </defs>
                                 <CartesianGrid stroke="#F0F0F0" vertical={false} />
                                 <XAxis dataKey="month" fontSize={12} axisLine={{ stroke: 'black' }} />
                                 <YAxis axisLine={false} fontSize={13} />
                                 <Tooltip content={<CustomTooltip />} />
-                                <Area type="monotone" dataKey="user" stroke="#4E79A7" strokeWidth={2} fillOpacity={1} fill="url(#colorUser)" />
+                                <Area type="monotone" dataKey="user" stroke="#16A34A" strokeWidth={2} fillOpacity={1} fill="url(#colorUser)" />
                             </AreaChart>
                         </ResponsiveContainer>
                     </div>

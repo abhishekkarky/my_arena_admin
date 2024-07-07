@@ -143,6 +143,14 @@ export const updateBookingApi = (id, data) =>
 export const getNotificationCountAndGrowthApi = () =>
   Api.get("/api/notification/countAndGrowth", config);
 
+// Get All Notifications
+export const getAllNotificationsApi = () =>
+  Api.get("/api/notification/all", config);
+
+// Mark Notification as read
+export const markNotificationsasReadApi = (data) =>
+  Api.post(`/api/notification/markRead`, data, config);
+
 // Creating payment log routes for vendor
 
 // Get All payment logs

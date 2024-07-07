@@ -1,8 +1,11 @@
 import { Disclosure, DisclosureButton, DisclosurePanel, Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react'
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
 import { Clock, Notification } from 'iconsax-react'
-import { useState } from 'react'
+import moment from 'moment'
+import { useEffect, useState } from 'react'
+import toast from 'react-hot-toast'
 import { Link } from 'react-router-dom'
+import { getAllNotificationsApi, markNotificationsasReadApi } from '../../apis/api'
 import handleLogout from '../Logout'
 
 const navigation = [
@@ -16,10 +19,36 @@ function classNames(...classes) {
 }
 
 export default function VendorNavbar() {
+    const localUser = JSON.parse(localStorage.getItem('user'));
     const [isDrawerOpen, setIsDrawerOpen] = useState(false)
+    const [notifications, setNotifications] = useState([]);
+    const [notificationIds, setNotificationIds] = useState([]);
+    const [isUpdated, setIsUpdated] = useState(false);
     const toggleDrawer = () => {
         setIsDrawerOpen(!isDrawerOpen);
     };
+
+    useEffect(() => {
+        getAllNotificationsApi().then((res) => {
+            setNotifications(res.data.notifications);
+            const ids = res.data.notifications.map(notification => notification._id);
+            setNotificationIds(ids);
+        })
+    }, [isUpdated])
+
+    const markAsRead = () => {
+        const data = {
+            notificationIds: notificationIds
+        }
+        markNotificationsasReadApi(data).then((res) => {
+            if (res.data.success) {
+                toast.success(res.data.message)
+                setIsUpdated((v) => !v)
+            } else {
+                toast.error(res.data.message)
+            }
+        })
+    }
     return (
         <Disclosure as="nav" className="bg-white">
             {({ open }) => (
@@ -71,9 +100,9 @@ export default function VendorNavbar() {
                                 >
                                     <span className="absolute -inset-1.5" />
                                     <span className="sr-only">View notifications</span>
-                                    {/* {
-                                        notification.length === 0 ? null : <span className='absolute right-1 top-0 w-[15px] h-[15px] rounded-full bg-green-700 text-white text-[10px] flex justify-center items-center'>{notification.length}</span>
-                                    } */}
+                                    {
+                                        notifications.length === 0 ? null : <span className='absolute right-1 top-0 w-[15px] h-[15px] rounded-full bg-green-700 text-white text-[10px] flex justify-center items-center'>{notifications.length}</span>
+                                    }
                                     <Notification />
                                 </button>
                                 <div
@@ -82,24 +111,32 @@ export default function VendorNavbar() {
                                 >
                                     <div className="flex justify-between items-center w-full">
                                         <p className="text-lg font-bold">Notifications</p>
-                                        <button onClick={toggleDrawer}>
-                                            <svg className="w-6 h-6 text-green-600" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
-                                                <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 11.917 9.724 16.5 19 7.5" />
-                                            </svg>
-                                        </button>
+                                        {
+                                            notifications.length > 0 ?
+                                                <button className={`${notifications.some(notif => !notif.isRead) ? '' : 'hidden'}`} onClick={markAsRead}>
+                                                    <svg className="w-6 h-6 text-green-600" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                                                        <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 11.917 9.724 16.5 19 7.5" />
+                                                    </svg>
+                                                </button>
+                                                : null}
                                     </div>
                                     <hr className='my-2' />
-                                    <div className="flex gap-3 items-start py-2 border-b hover:bg-neutral-50 p-2">
-                                        <input type="text" className='w-[35px] h-[35px] rounded-full bg-teal-500 text-center text-white' defaultValue={'N'} />
-                                        <div className="w-full flex flex-col gap-1">
-                                            <p>Notification Title</p>
-                                            <p className='text-[15px]'>Lorem ipsum dolor, sit amet consectetur adipisicing elit.</p>
-                                            <div className="flex gap-1 items-center text-xs mt-1">
-                                                <Clock size={14} />
-                                                <p>Jan 14th, 2024</p>
-                                            </div>
-                                        </div>
-                                    </div>
+                                    {
+                                        notifications.length === 0 ? <p className='text-center text-base py-2'>No notifications</p> :
+                                            notifications.map((notification, index) => (
+                                                <div className="flex gap-3 items-start py-2 border-b hover:bg-neutral-50 p-2" key={index}>
+                                                    <input type="text" className='w-[35px] h-[35px] rounded-full bg-teal-500 text-center text-white cursor-auto outline-none' readOnly defaultValue={'N'} />
+                                                    <div className="w-full flex flex-col gap-1">
+                                                        <p>Booking Alert !</p>
+                                                        <p className='text-[15px]'>Dear {localUser.fullName.split(' ')[0]}! {notification?.booking?.futsal?.name} has been booked by {notification?.booking?.user?.fullName} for {moment(notification?.booking?.date).format('MMM Do, YYYY (dddd)')} please check your bookings logs.</p>
+                                                        <div className="flex gap-1 items-center text-xs mt-1">
+                                                            <Clock size={14} />
+                                                            <p>{moment(notification?.createdAt).format('MMM Do YYYY, hh:mm A')}</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))
+                                    }
                                 </div>
                                 <Menu as="div" className="relative ml-3">
                                     <div>

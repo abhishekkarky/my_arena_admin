@@ -15,7 +15,7 @@ const EditBookingModal = ({ open, onClose, booking, setIsUpdated }) => {
         user: '',
         futsal: '',
         date: '',
-        timeSlot: '',
+        timeSlot: [],
         paid: false
     });
     const [errors, setErrors] = useState({});
@@ -30,20 +30,38 @@ const EditBookingModal = ({ open, onClose, booking, setIsUpdated }) => {
                     toast.error('Could not fetch futsal data');
                 }
             });
+
+            getBookingById(booking).then((res) => {
+                if (res.data.success) {
+                    const bookingData = res.data.booking;
+                    setFormData({
+                        user: bookingData?.user?.number || '',
+                        futsal: bookingData?.futsal?._id || '',
+                        date: moment(bookingData?.date).format('YYYY-MM-DD') || '',
+                        paid: bookingData?.paid ? true : false
+                    });
+                }
+            });
         }
-    }, [open]);
+    }, [open, booking]);
 
     useEffect(() => {
-        getBookingById(booking).then((res) => {
-            if (res.data.success) {
-                formData.user = res.data.booking?.user?.fullName
-                formData.futsal = res.data.booking?.futsal?.location
-                formData.date = moment(res.data.booking?.date).format('YYYY-MM-DD')
-                formData.timeSlot = res.data.booking?.timeSlot.map(slot => ({ label: `${slot.startTime} - ${slot.endTime}`, value: slot._id }))
-                formData.paid = res.data.booking?.paid ? true : false
-            }
-        })
-    }, [open, booking])
+        if (open && formData.futsal && formData.date) {
+            getAllAvailableTimeSlotsApi(formData.futsal, formData.date).then(res => {
+                if (res.data.success) {
+                    setTimeSlotOptions(res.data.timeSlots.map(slot => ({ label: `${slot.startTime} - ${slot.endTime}`, value: slot._id })));
+                } else {
+                    setTimeSlotOptions([]);
+                    toast.error('Failed to fetch time slots');
+                }
+            }).catch(err => {
+                if (err.response && err.response.status === 403) {
+                    toast.error(err.response.data.message);
+                    setTimeSlotOptions([]);
+                }
+            });
+        }
+    }, [formData.futsal, formData.date, open]);
 
     const validateForm = () => {
         let formErrors = {};
@@ -56,7 +74,7 @@ const EditBookingModal = ({ open, onClose, booking, setIsUpdated }) => {
         if (!formData.date) {
             formErrors.date = 'Date is required';
         }
-        if (!formData.timeSlot) {
+        if (!formData.timeSlot || formData.timeSlot.length === 0) {
             formErrors.timeSlot = 'Time slot is required';
         }
         setErrors(formErrors);
@@ -93,24 +111,6 @@ const EditBookingModal = ({ open, onClose, booking, setIsUpdated }) => {
         });
     };
 
-    useEffect(() => {
-        if (formData.futsal && formData.date) {
-            getAllAvailableTimeSlotsApi(formData.futsal, formData.date).then(res => {
-                if (res.data.success) {
-                    console.log()
-                    setTimeSlotOptions(res.data.timeSlots.map(slot => ({ label: `${slot.startTime} - ${slot.endTime}`, value: slot._id })));
-                } else {
-                    setTimeSlotOptions([]);
-                    toast.error('Failed to fetch time slots');
-                }
-            }).catch(err => {
-                if (err.response && err.response.status === 403) {
-                    toast.error(err.response.data.message);
-                    setTimeSlotOptions([]);
-                }
-            });
-        }
-    }, [formData.futsal, formData.date, open, booking]);
     return (
         <React.Fragment>
             <Transition in={open} timeout={400}>
@@ -159,6 +159,7 @@ const EditBookingModal = ({ open, onClose, booking, setIsUpdated }) => {
                                         placeholder="9800000000"
                                         value={formData.user}
                                         onChange={handleChange}
+                                        disabled
                                         className='border rounded-md p-3 outline-none'
                                     />
                                     {errors.user && <p className='text-[12px]' style={{ color: "#dc3545" }}>{errors.user}</p>}
@@ -174,7 +175,8 @@ const EditBookingModal = ({ open, onClose, booking, setIsUpdated }) => {
                                             <option key={futsal._id} value={futsal._id}>{futsal.location}</option>
                                         ))}
                                     </select>
-                                    {errors.futsal && <p className='text-[12px]' style={{ color: "#dc3545" }}>{errors.futsal}</p>}                                    <label className='text-md'>Select Date</label>
+                                    {errors.futsal && <p className='text-[12px]' style={{ color: "#dc3545" }}>{errors.futsal}</p>}
+                                    <label className='text-md'>Select Date</label>
                                     <input
                                         type='date'
                                         name="date"
@@ -188,7 +190,7 @@ const EditBookingModal = ({ open, onClose, booking, setIsUpdated }) => {
                                     <ReactSelect
                                         isMulti
                                         name="timeSlot"
-                                        value={formData.timeSlot.label}
+                                        value={formData.timeSlot}
                                         options={timeSlotOptions}
                                         onChange={option => handleSelectChange('timeSlot', option)}
                                     />
@@ -200,8 +202,8 @@ const EditBookingModal = ({ open, onClose, booking, setIsUpdated }) => {
                                         onChange={handleChange}
                                         className='border rounded-md p-3 outline-none h-[50px]'
                                     >
-                                        <option value="false">Unpaid</option>
-                                        <option value="true">Paid</option>
+                                        <option value={false}>Unpaid</option>
+                                        <option value={true}>Paid</option>
                                     </select>
                                     {errors.paid && <p className='text-[12px]' style={{ color: "#dc3545" }}>{errors.paid}</p>}
                                     <button type="submit" className='w-[150px] h-[40px] bg-black rounded-md text-white mt-5'>Edit Booking</button>

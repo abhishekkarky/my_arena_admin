@@ -60,7 +60,7 @@ const VendorTotalFutsalBarChart = () => {
                         <YAxis fontSize={13} axisLine={false} />
                         <CartesianGrid stroke="#F0F0F0" vertical={false} />
                         <Tooltip content={<CustomTooltip />} />
-                        <Bar dataKey="count" fill="#8884d8" barSize={40} />
+                        <Bar dataKey="count" fill="#16A34A" barSize={40} />
                     </BarChart>
                 </ResponsiveContainer>
             )}

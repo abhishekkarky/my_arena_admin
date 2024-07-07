@@ -259,7 +259,7 @@ const PaymentSettings = () => {
                 <div className="w-full px-5 mt-2 flex flex-wrap gap-2">
                     <button onClick={handleClear} className='border px-3 py-2 bg-red-600 rounded-lg text-white'>Clear</button>
                     <button onClick={handleAddPaymentSectionOpen} className='border px-3 py-2 bg-black rounded-lg text-white'>
-                        {isLoading ? 'Saving...' : 'Save Domain'}
+                        {isLoading ? 'Saving...' : 'Save Payment Method'}
                     </button>
                 </div>
             </div>
