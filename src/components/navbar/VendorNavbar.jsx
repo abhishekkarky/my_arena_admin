@@ -49,6 +49,8 @@ export default function VendorNavbar() {
             }
         })
     }
+
+    const unreadNotifications = notifications.filter(notification => !notification.isRead);
     return (
         <Disclosure as="nav" className="bg-white">
             {({ open }) => (
@@ -101,7 +103,7 @@ export default function VendorNavbar() {
                                     <span className="absolute -inset-1.5" />
                                     <span className="sr-only">View notifications</span>
                                     {
-                                        notifications.length === 0 ? null : <span className='absolute right-1 top-0 w-[15px] h-[15px] rounded-full bg-green-700 text-white text-[10px] flex justify-center items-center'>{notifications.length}</span>
+                                        unreadNotifications.length === 0 ? null : <span className='absolute right-1 top-0 w-[15px] h-[15px] rounded-full bg-green-700 text-white text-[10px] flex justify-center items-center'>{unreadNotifications.length}</span>
                                     }
                                     <Notification />
                                 </button>
